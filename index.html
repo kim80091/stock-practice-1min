@@ -76,7 +76,9 @@ button:active{opacity:.8;}
   <button id="btnStart">▶ 시작</button>
   <button id="btnPause">⏸ 일시정지</button>
   <button class="g hideMob" id="btnBuy">매수</button>
+  <button class="g hideMob" id="btnBuyHalf">1/2분할매수</button>
   <button class="r hideMob" id="btnSell">매도</button>
+  <button class="r hideMob" id="btnSellHalf">1/2분할매도</button>
   <button id="btnReset">↺ 리셋</button>
 </div>
 <div class="row">
@@ -105,7 +107,9 @@ button:active{opacity:.8;}
 <div class="cbox"><div class="cwrap pc"><canvas id="cPrice"></canvas></div></div>
 <div class="mbuy">
   <button class="g" id="btnBuyM">매수</button>
+  <button class="g" id="btnBuyHalfM">1/2분할</button>
   <button class="r" id="btnSellM">매도</button>
+  <button class="r" id="btnSellHalfM">1/2분할</button>
 </div>
 <div class="cbox">
   <div class="ddrow"><span>MA40 추세 방향</span><span class="ddval" id="vMaTrend" style="color:#378ADD;">-</span></div>
@@ -146,6 +150,19 @@ button:active{opacity:.8;}
 const WORKER='https://candle-practice-1min.kim80091.workers.dev'; // TODO: 실제 배포 후 주소 확인/교체
 const FEE=.005, VP=8, VIS=90;
 let stockList=[], curStock=null;
+let shuffleBag=[]; // "다른 종목" 뽑을 때 다 한 번씩 나올 때까지 중복 안 되게 뽑는 통
+
+// 통이 비면 전체 인덱스를 다시 채우고 섞음(Fisher-Yates), 하나 뽑아서 반환
+function drawFromBag(){
+  if(!shuffleBag.length){
+    shuffleBag=stockList.map((_,i)=>i);
+    for(let i=shuffleBag.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [shuffleBag[i],shuffleBag[j]]=[shuffleBag[j],shuffleBag[i]];
+    }
+  }
+  return shuffleBag.pop();
+}
 let candles=[], timer=null, pos=null, tPnl=0, trades=[];
 let intSec=1, elapsed=0, capital=100000000;
 let wins=0, losses=0, holdSum=0;
@@ -301,7 +318,7 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.lineTo(x.getPixelForValue(a.x2),y.getPixelForValue(a.yv));
       ctx.stroke();
     }else if(a.t==='arrow'){
-      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=11;
+      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=a.half?11*.65:11;
       ctx.lineJoin='round';
       if(a.up){
         const by=py+sz*2.4;
@@ -436,7 +453,7 @@ function buildPA(){
   trades.forEach(t=>{
     if(t.i<s||t.i>=candles.length)return;
     const c=candles[t.i],li=pad+(t.i-s);
-    list.push({t:'arrow',xi:li,yi:t.buy?c.low:c.high,cl:t.buy?bC:sC,up:t.buy});
+    list.push({t:'arrow',xi:li,yi:t.buy?c.low:c.high,cl:t.buy?bC:sC,up:t.buy,half:t.half});
   });
   return list;
 }
@@ -506,7 +523,8 @@ function updateUI(){
   const nm=curStock?' '+curStock.name:'';
   document.getElementById('prLabel').textContent='가격: '+fp(last.close)+nm;
   if(pos){
-    document.getElementById('vEntry').textContent=fp(pos.p);
+    const pctTxt=pos.frac<0.999?' ('+Math.round(pos.frac*100)+'% 보유)':'';
+    document.getElementById('vEntry').textContent=fp(pos.p)+pctTxt;
     const net=(last.close-pos.p)/pos.p*100-FEE*100;
     const el=document.getElementById('vPnl');
     el.textContent=net.toFixed(1)+'%';el.style.color=net>=0?bC:sC;
@@ -519,7 +537,7 @@ function updateUI(){
   const tel=document.getElementById('vTotal');
   tel.textContent=tPnl.toFixed(1)+'%';tel.style.color=tPnl>0?bC:(tPnl<0?sC:'#1a1a1a');
   let asset=capital*(1+tPnl/100);
-  if(pos){const net=(last.close-pos.p)/pos.p*100-FEE*100;asset*=(1+net/100);}
+  if(pos){const net=(last.close-pos.p)/pos.p*100-FEE*100;asset=capital*(1+(tPnl+net*pos.frac)/100);}
   const ael=document.getElementById('vAsset');
   ael.textContent=fp(Math.round(asset))+'원';ael.style.color=asset>=capital?bC:sC;
   const anel=document.getElementById('vAnnual');
@@ -540,35 +558,66 @@ function log(t){
   const el=document.getElementById('tlog'),d=document.createElement('div');
   d.textContent=t;el.prepend(d);
 }
-function doBuy(){
-  if(pos){log('이미 보유 중입니다.');return;}
+function doBuy(buyFrac){
+  // buyFrac: 1 => 잔여 전부 매수, 0.5 => 잔여 금액의 절반만 매수(1/2분할매수)
   const last=candles[candles.length-1],idx=candles.length-1;
-  pos={p:last.close,i:idx,d:elapsed,snap:snapshot(idx),maxPct:0,minPct:0};
-  trades.push({i:idx,buy:true});
-  log('매수 @ '+fp(last.close)+' ('+elapsed+'분째)');
+  if(pos&&pos.frac>=0.999){log('이미 전량 매수 상태입니다.');return;}
+  if(pos&&buyFrac>=1){log('분할 매수 진행 중입니다. 1/2분할매수를 이용하세요.');return;}
+
+  const remaining=pos?(1-pos.frac):1;
+  const addFrac=buyFrac>=1?remaining:remaining*0.5;
+  if(addFrac<=0)return;
+
+  if(!pos){
+    pos={p:last.close,frac:addFrac,i:idx,d:elapsed,snap:snapshot(idx),maxPct:0,minPct:0,sellContribSum:0,sellAmtSum:0};
+  }else{
+    pos.p=(pos.p*pos.frac+last.close*addFrac)/(pos.frac+addFrac);
+    pos.frac+=addFrac;
+  }
+  trades.push({i:idx,buy:true,half:buyFrac<1});
+  const pct=Math.round(pos.frac*100);
+  log((buyFrac<1?'1/2분할매수':'매수')+' @ '+fp(last.close)+' ('+elapsed+'분째) — 보유비중 '+pct+'%');
   refresh();
 }
-function doSell(){
+function doSell(sellFrac){
+  // sellFrac: 1 => 보유 전량 매도(청산), 0.5 => 보유 중인 포지션의 절반만 매도(1/2분할매도)
   if(!pos){log('보유 중인 포지션이 없습니다.');return;}
   const last=candles[candles.length-1],idx=candles.length-1;
   const gross=(last.close-pos.p)/pos.p*100;
   const net=gross-FEE*100;
-  tPnl+=net;net>0?wins++:losses++;
-  const h=elapsed-pos.d;holdSum+=h;
-  trades.push({i:idx,buy:false});
-  log('매도 @ '+fp(last.close)+' | 보유 '+h+'분 | '+net.toFixed(1)+'%');
-  const record={
-    no:tradeHistory.length+1,
-    buyPrice:pos.p,sellPrice:last.close,
-    buyDay:pos.d,sellDay:elapsed,holdDays:h,
-    netPct:net,grossPct:gross,
-    maxPct:pos.maxPct,minPct:pos.minPct,
-    win:net>0,
-    buySnap:pos.snap,sellSnap:snapshot(idx)
-  };
-  tradeHistory.push(record);
-  pos=null;refresh();
-  requestAIAnalysis(record);
+
+  const sellAmt=sellFrac>=1?pos.frac:pos.frac*0.5; // 총자본 대비 이번에 매도하는 비중
+  tPnl+=net*sellAmt;
+  pos.sellContribSum+=net*sellAmt;
+  pos.sellAmtSum+=sellAmt;
+  pos.frac-=sellAmt;
+
+  trades.push({i:idx,buy:false,half:sellFrac<1});
+  const remainPct=Math.round(pos.frac*100);
+  const closing=pos.frac<=0.001;
+  const holdTxt=closing?' | 보유 '+(elapsed-pos.d)+'분':'';
+  log((sellFrac<1?'1/2분할매도':'매도')+' @ '+fp(last.close)+holdTxt+' | '+net.toFixed(1)+'% (비중 '+Math.round(sellAmt*100)+'%'+(closing?'':', 잔여 '+remainPct+'%')+')');
+
+  if(closing){
+    // 포지션 완전 청산 → 거래 1건으로 기록 (여러 번의 분할매도는 비중 가중평균으로 집계)
+    const avgNet=pos.sellAmtSum>0?pos.sellContribSum/pos.sellAmtSum:net;
+    const h=elapsed-pos.d;holdSum+=h;
+    avgNet>0?wins++:losses++;
+    const record={
+      no:tradeHistory.length+1,
+      buyPrice:pos.p,sellPrice:last.close,
+      buyDay:pos.d,sellDay:elapsed,holdDays:h,
+      netPct:avgNet,grossPct:avgNet+FEE*100,
+      maxPct:pos.maxPct,minPct:pos.minPct,
+      win:avgNet>0,
+      buySnap:pos.snap,sellSnap:snapshot(idx)
+    };
+    tradeHistory.push(record);
+    pos=null;refresh();
+    requestAIAnalysis(record);
+  }else{
+    refresh();
+  }
 }
 
 // ── tick ─────────────────────────────────────────────────────
@@ -622,6 +671,7 @@ async function loadStockList(){
       return;
     }
     stockList=js.stocks;
+    shuffleBag=[]; // 새 목록 받으면 통 초기화
     const sel=document.getElementById('stockSel');
     sel.innerHTML='';
     stockList.forEach((s,idx)=>{
@@ -630,8 +680,8 @@ async function loadStockList(){
       o.textContent=s.name+' ('+s.code+') — '+s.date+' ('+s.count+'분)';
       sel.appendChild(o);
     });
-    // 최근 2일치 중 랜덤 종목 자동 로드
-    const rndIdx=Math.floor(Math.random()*stockList.length);
+    // 최근 2일치 중 랜덤 종목 자동 로드 (중복 방지 통에서 하나 뽑기)
+    const rndIdx=drawFromBag();
     sel.value=rndIdx;
     loadReal(stockList[rndIdx].code, stockList[rndIdx].date);
   }catch(e){
@@ -811,7 +861,7 @@ ${tradeHistory.slice(-5).map(t=>'#'+t.no+': '+(t.win?'수익':'손실')+' '+t.ne
 
 function loadRandomStock(){
   if(!stockList.length){loadStockList();return;}
-  const idx=Math.floor(Math.random()*stockList.length);
+  const idx=drawFromBag();
   document.getElementById('stockSel').value=idx;
   loadReal(stockList[idx].code, stockList[idx].date);
 }
@@ -838,16 +888,20 @@ document.getElementById('btnReset').onclick=()=>{
   resetStats();
   if(curStock)loadReal(curStock.code, curStock.date);else refresh();
 };
-document.getElementById('btnBuy').onclick=doBuy;
-document.getElementById('btnSell').onclick=doSell;
-document.getElementById('btnBuyM').onclick=doBuy;
-document.getElementById('btnSellM').onclick=doSell;
+document.getElementById('btnBuy').onclick=()=>doBuy(1);
+document.getElementById('btnBuyHalf').onclick=()=>doBuy(.5);
+document.getElementById('btnSell').onclick=()=>doSell(1);
+document.getElementById('btnSellHalf').onclick=()=>doSell(.5);
+document.getElementById('btnBuyM').onclick=()=>doBuy(1);
+document.getElementById('btnBuyHalfM').onclick=()=>doBuy(.5);
+document.getElementById('btnSellM').onclick=()=>doSell(1);
+document.getElementById('btnSellHalfM').onclick=()=>doSell(.5);
 
 [['s05',.5],['s1',1],['s2',2],['s3',3]].forEach(([id,v])=>{
   document.getElementById(id).onclick=()=>{
     intSec=v;
     ['s05','s1','s2','s3'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
-    if(timer)startT();
+    if(timer){stopT();startT();}  // 재생 중이면 즉시 새 속도로 다시 시작
   };
 });
 [['c1',10000000],['c5',50000000],['c10',100000000]].forEach(([id,v])=>{
