@@ -94,14 +94,14 @@ button:active{opacity:.8;}
 </div>
 
 <div class="stats">
-  <div class="card"><div class="lbl">매수가</div><div class="val" id="vEntry">-</div></div>
-  <div class="card"><div class="lbl">보유 경과</div><div class="val" id="vHold">-</div></div>
-  <div class="card"><div class="lbl">현재 손익(수수료 차감)</div><div class="val" id="vPnl">-</div></div>
-  <div class="card"><div class="lbl">누적 손익</div><div class="val" id="vTotal">0%</div></div>
   <div class="card"><div class="lbl">평가자산</div><div class="val" id="vAsset">100,000,000원</div></div>
-  <div class="card"><div class="lbl">누적 손익%</div><div class="val" id="vAnnual">-</div></div>
-  <div class="card"><div class="lbl">매매 승률 (횟수)</div><div class="val" id="vWin">-</div></div>
+  <div class="card"><div class="lbl">매수가</div><div class="val" id="vEntry">-</div></div>
   <div class="card"><div class="lbl">평균 보유기간</div><div class="val" id="vAvgHold">-</div></div>
+  <div class="card"><div class="lbl">매매 승률 (횟수)</div><div class="val" id="vWin">-</div></div>
+  <div class="card"><div class="lbl">보유 경과</div><div class="val" id="vHold">-</div></div>
+  <div class="card"><div class="lbl">매매 횟수</div><div class="val" id="vTradeCount">0회</div></div>
+  <div class="card"><div class="lbl">누적 손익%</div><div class="val" id="vAnnual">-</div></div>
+  <div class="card"><div class="lbl">현재 손익(수수료 차감)</div><div class="val" id="vPnl">-</div></div>
 </div>
 
 <div class="cbox"><div class="cwrap pc"><canvas id="cPrice"></canvas></div></div>
@@ -534,8 +534,6 @@ function updateUI(){
     const el=document.getElementById('vPnl');el.textContent='-';el.style.color='#1a1a1a';
     document.getElementById('vHold').textContent='-';
   }
-  const tel=document.getElementById('vTotal');
-  tel.textContent=tPnl.toFixed(1)+'%';tel.style.color=tPnl>0?bC:(tPnl<0?sC:'#1a1a1a');
   let asset=capital*(1+tPnl/100);
   if(pos){const net=(last.close-pos.p)/pos.p*100-FEE*100;asset=capital*(1+(tPnl+net*pos.frac)/100);}
   const ael=document.getElementById('vAsset');
@@ -546,6 +544,7 @@ function updateUI(){
     anel.style.color=tPnl>0?bC:(tPnl<0?sC:'#1a1a1a');
   }else{anel.textContent='-';anel.style.color='#1a1a1a';}
   const tot=wins+losses;
+  document.getElementById('vTradeCount').textContent=tot+'회';
   const wrel=document.getElementById('vWin');
   if(tot>0){const wr=wins/tot*100;wrel.textContent=wr.toFixed(1)+'% ('+tot+'회)';wrel.style.color=wr>=50?bC:sC;}
   else{wrel.textContent='0% (0회)';wrel.style.color='#1a1a1a';}
