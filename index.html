@@ -152,9 +152,24 @@ let wins=0, losses=0, holdSum=0;
 let tradeHistory=[], aiCount=0;
 
 // ── 지표 ─────────────────────────────────────────────────────
+let histCandles=[]; // 전일 마지막 50분 종가 (MA10/MA40 시드용, 화면엔 안 그려짐)
+
+// idx>=0: 오늘 candles 배열, idx<0: 전일 시드(histCandles)에서 역산해서 가져옴
+function closeAt(idx){
+  if(idx>=0){
+    return candles[idx]?candles[idx].close:undefined;
+  }
+  const hIdx=histCandles.length+idx; // idx=-1 → 마지막 시드 종가
+  return hIdx>=0?histCandles[hIdx].close:undefined;
+}
+
 function ma(p,idx){
-  if(idx+1<p)return null;
-  let s=0;for(let i=idx-p+1;i<=idx;i++)s+=candles[i].close;
+  let s=0;
+  for(let i=idx-p+1;i<=idx;i++){
+    const c=closeAt(i);
+    if(c===undefined)return null;
+    s+=c;
+  }
   return s/p;
 }
 // 당일 세션(배열 0번 인덱스=장 시작) 기준 최고거래량
@@ -189,9 +204,8 @@ function ma40Dir(idx){
 // CrossUp(C,M): 직전 종가 < MA40 이고 현재 종가 >= MA40 → 골든크로스 1 (주황)
 // CrossDown(C,M): 직전 종가 > MA40 이고 현재 종가 <= MA40 → 데드크로스 -1 (에메랄드)
 function ma40Cross(idx){
-  if(idx<41)return 0;
-  const curC=candles[idx].close;
-  const prevC=candles[idx-1].close;
+  const curC=closeAt(idx),prevC=closeAt(idx-1);
+  if(curC===undefined||prevC===undefined)return 0;
   const curM=ma(40,idx);
   const prevM=ma(40,idx-1);
   if(!curM||!prevM)return 0;
@@ -642,6 +656,15 @@ async function loadReal(code, date){
     // 전체 데이터 저장 (시작 이후 봉 추가용)
     window._realAllCandles = allCandles;
     window._realNextIdx = startIdx;
+
+    // 전일 마지막 50분 시드 데이터 (MA10/MA40을 첫 봉부터 바로 표시하기 위함)
+    // 데이터가 하루치뿐이거나 전일에 이 종목이 없었으면 tail:null → 그냥 빈 배열(기존과 동일하게 서서히 표시)
+    histCandles=[];
+    try{
+      const tres=await fetch(WORKER+'/tail1m?code='+code+'&date='+date);
+      const tjs=await tres.json();
+      if(tjs.tail&&tjs.tail.length)histCandles=tjs.tail;
+    }catch(e){/* 시드 데이터 없어도 무방, 기존 방식대로 동작 */}
 
     curStock={name:js.name||code,code:js.code,date:js.date||date,count:js.count,totalCandles:total};
     elapsed=0;  // 연습 시작 시점부터 0으로 카운팅
