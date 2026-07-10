@@ -559,17 +559,17 @@ function log(t){
   d.textContent=t;el.prepend(d);
 }
 function doBuy(buyFrac){
-  // buyFrac: 1 => 잔여 전부 매수, 0.5 => 잔여 금액의 절반만 매수(1/2분할매수)
+  // buyFrac: 1 => 잔여 전부 매수, 0.5 => 1/2분할매수 (1번째 클릭 50%, 2번째 클릭에 잔여 전부)
   const last=candles[candles.length-1],idx=candles.length-1;
   if(pos&&pos.frac>=0.999){log('이미 전량 매수 상태입니다.');return;}
   if(pos&&buyFrac>=1){log('분할 매수 진행 중입니다. 1/2분할매수를 이용하세요.');return;}
 
-  const remaining=pos?(1-pos.frac):1;
-  const addFrac=buyFrac>=1?remaining:remaining*0.5;
+  // 포지션이 없으면 이번이 1번째 클릭(50%), 이미 있으면 2번째 클릭(잔여 전부)
+  const addFrac=pos?(1-pos.frac):(buyFrac>=1?1:0.5);
   if(addFrac<=0)return;
 
   if(!pos){
-    pos={p:last.close,frac:addFrac,i:idx,d:elapsed,snap:snapshot(idx),maxPct:0,minPct:0,sellContribSum:0,sellAmtSum:0};
+    pos={p:last.close,frac:addFrac,i:idx,d:elapsed,snap:snapshot(idx),maxPct:0,minPct:0,sellContribSum:0,sellAmtSum:0,halfSellUsed:false};
   }else{
     pos.p=(pos.p*pos.frac+last.close*addFrac)/(pos.frac+addFrac);
     pos.frac+=addFrac;
@@ -580,13 +580,22 @@ function doBuy(buyFrac){
   refresh();
 }
 function doSell(sellFrac){
-  // sellFrac: 1 => 보유 전량 매도(청산), 0.5 => 보유 중인 포지션의 절반만 매도(1/2분할매도)
+  // sellFrac: 1 => 보유 전량 매도(청산), 0.5 => 1/2분할매도 (1번째 클릭 보유량의 50%, 2번째 클릭에 잔여 전부)
   if(!pos){log('보유 중인 포지션이 없습니다.');return;}
   const last=candles[candles.length-1],idx=candles.length-1;
   const gross=(last.close-pos.p)/pos.p*100;
   const net=gross-FEE*100;
 
-  const sellAmt=sellFrac>=1?pos.frac:pos.frac*0.5; // 총자본 대비 이번에 매도하는 비중
+  let sellAmt;
+  if(sellFrac>=1){
+    sellAmt=pos.frac; // 전체 매도: 잔여 전부 청산
+  }else if(!pos.halfSellUsed){
+    sellAmt=pos.frac*0.5; // 1번째 분할매도: 현재 보유량의 절반
+    pos.halfSellUsed=true;
+  }else{
+    sellAmt=pos.frac; // 2번째 분할매도: 잔여 전부 청산
+  }
+
   tPnl+=net*sellAmt;
   pos.sellContribSum+=net*sellAmt;
   pos.sellAmtSum+=sellAmt;
