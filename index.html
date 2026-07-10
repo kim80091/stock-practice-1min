@@ -795,15 +795,6 @@ document.getElementById('btnSellM').onclick=doSell;
   };
 });
 
-// ── 디버그용 (콘솔에서 window.__debug 로 내부 상태 확인 가능) ──
-window.__debug = {
-  get trades(){return trades;},
-  get candles(){return candles.length;},
-  get list(){return PC.options.plugins.ann.list;},
-  get arrows(){return PC.options.plugins.ann.list.filter(a=>a.t==='arrow');},
-  get scaleY(){return {min:PC.scales.y.min,max:PC.scales.y.max};},
-};
-
 // ── 시작 ─────────────────────────────────────────────────────
 loadStockList();
 
