@@ -390,7 +390,7 @@ function buildPA(){
   trades.forEach(t=>{
     if(t.i<s||t.i>=candles.length)return;
     const c=candles[t.i],li=pad+(t.i-s);
-    list.push({t:'arrow',xi:li,yi:t.buy?c.low*.985:c.high*1.015,cl:t.buy?bC:sC,up:t.buy});
+    list.push({t:'arrow',xi:li,yi:t.buy?c.low:c.high,cl:t.buy?bC:sC,up:t.buy});
   });
   return list;
 }
