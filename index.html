@@ -115,6 +115,10 @@ button:active{opacity:.8;}
   <div class="ddrow"><span>MA40 골드,데드 크로스</span><span class="ddval" id="vMaCross" style="color:#555;">-</span></div>
   <div class="cwrap" style="height:55px;"><canvas id="cMaCross"></canvas></div>
 </div>
+<div class="cbox">
+  <div class="ddrow"><span>거래대금</span><span class="ddval" id="vValue" style="color:#555;">-</span></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cValue"></canvas></div>
+</div>
 <div class="logtitle">거래 내역</div>
 <div id="tlog"></div>
 
@@ -363,6 +367,33 @@ const MC=new Chart(document.getElementById('cMaCross'),{
     plugins:{legend:{display:false},tooltip:{enabled:false}}
   },plugins:[]
 });
+// 거래대금 차트 (억원 단위, 주황/골드 영역형 선)
+const VLC=new Chart(document.getElementById('cValue'),{
+  type:'line',
+  data:{labels:[],datasets:[{
+    label:'거래대금',data:[],
+    borderColor:'#F2A93B',backgroundColor:'rgba(242,169,59,.35)',
+    borderWidth:1.3,pointRadius:0,tension:.15,fill:true,spanGaps:true,
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    layout:{padding:{left:4,right:4}},
+    scales:{
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      y:{position:'right',beginAtZero:true,
+        ticks:{font:{size:10},padding:6,callback:v=>fmtEok(v)},
+        afterFit:s=>{s.width=64;},
+        grid:{color:'rgba(128,128,128,.1)'}}
+    },
+    plugins:{legend:{display:false},tooltip:{enabled:false}}
+  },plugins:[]
+});
+function fmtEok(v){
+  const eok=v/100000000;
+  if(eok<1)return eok.toFixed(1);
+  return Math.round(eok).toLocaleString('ko-KR');
+}
+
 PC.data.datasets=[
   {label:'MA10',data:[],borderColor:'#F5A623',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
   {label:'MA40',data:[],borderColor:'#0F6E56',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
@@ -440,7 +471,15 @@ function refresh(){
   else if(lastCross===-1){crossEl.textContent='▼ 데드크로스';crossEl.style.color='#2ECDA7';}
   else{crossEl.textContent='-';crossEl.style.color='#555';}
 
-  PC.update('none');MT.update('none');MC.update('none');
+  // 거래대금 차트 (억원 단위)
+  VLC.data.labels=lbls;
+  VLC.data.datasets[0].data=vdata(i=>candles[i].volume*candles[i].close);
+
+  // 거래대금 현재값 레이블
+  const lastValue=candles[candles.length-1].volume*candles[candles.length-1].close;
+  document.getElementById('vValue').textContent=fmtEok(lastValue)+'억';
+
+  PC.update('none');MT.update('none');MC.update('none');VLC.update('none');
   updateUI();
 }
 
