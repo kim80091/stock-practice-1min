@@ -290,8 +290,9 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.stroke();
     }else if(a.t==='dot'){
       ctx.fillStyle='#BA7517';ctx.strokeStyle='#633806';ctx.lineWidth=1;
+      const dpx=x.getPixelForValue(a.xi),dpy=y.getPixelForValue(a.yi)-10;
       ctx.beginPath();
-      ctx.arc(x.getPixelForValue(a.xi),y.getPixelForValue(a.yi),4,0,Math.PI*2);
+      ctx.arc(dpx,dpy,4,0,Math.PI*2);
       ctx.fill();ctx.stroke();
     }else if(a.t==='hline'){
       ctx.strokeStyle=a.cl;ctx.lineWidth=1;
@@ -430,7 +431,7 @@ function buildPA(){
     const c=candles[i],li=pad+(i-s),up=c.close>=c.open;
     list.push({t:'box',x1:li-.3,x2:li+.3,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
     list.push({t:'wick',xi:li,hi:c.high,lo:c.low,cl:up?uC:dC});
-    if(volSignal(i))list.push({t:'dot',xi:li,yi:c.high*1.01});
+    if(volSignal(i))list.push({t:'dot',xi:li,yi:c.high});
   }
   trades.forEach(t=>{
     if(t.i<s||t.i>=candles.length)return;
