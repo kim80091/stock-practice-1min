@@ -133,6 +133,10 @@ button:active{opacity:.8;}
   <div class="cwrap" style="height:55px;"><canvas id="cMaCross"></canvas></div>
 </div>
 <div class="cbox">
+  <div class="ddrow"><span>OBV (Signal 10, 단순)</span><span class="ddval" id="vObv" style="color:#555;">-</span></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cObv"></canvas></div>
+</div>
+<div class="cbox">
   <div class="ddrow"><span>거래대금</span><span class="ddval" id="vValue" style="color:#555;">-</span></div>
   <div class="cwrap" style="height:55px;"><canvas id="cValue"></canvas></div>
 </div>
@@ -221,6 +225,25 @@ function bbStats(idx){
 }
 function bbUpper(idx){const b=bbStats(idx);return b?b.mid+BB_MULT*b.sd:null;}
 function bbLower(idx){const b=bbStats(idx);return b?b.mid-BB_MULT*b.sd:null;}
+
+// OBV (On Balance Volume) — 당일 세션(0번 인덱스=장 시작) 기준 누적
+function obvSeries(){
+  const arr=[];
+  let val=0;
+  for(let i=0;i<candles.length;i++){
+    if(i===0){val=candles[i].volume;}
+    else if(candles[i].close>candles[i-1].close){val+=candles[i].volume;}
+    else if(candles[i].close<candles[i-1].close){val-=candles[i].volume;}
+    arr.push(val);
+  }
+  return arr;
+}
+// OBV Signal — 단순이동평균(SMA), 기간 10
+function obvSignalMA(arr,idx,p){
+  if(idx+1<p)return null;
+  let s=0;for(let i=idx-p+1;i<=idx;i++)s+=arr[i];
+  return s/p;
+}
 // 당일 세션(배열 0번 인덱스=장 시작) 기준 최고거래량
 function hvol(idx){
   let h=0;
@@ -431,6 +454,31 @@ const MC=new Chart(document.getElementById('cMaCross'),{
     plugins:{legend:{display:false},tooltip:{enabled:false}}
   },plugins:[]
 });
+// OBV (On Balance Volume) + Signal(10, 단순) 차트
+const OC=new Chart(document.getElementById('cObv'),{
+  type:'line',
+  data:{labels:[],datasets:[
+    {label:'OBV',data:[],borderColor:'#3B7DDB',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+    {label:'Signal(10)',data:[],borderColor:'#D8622E',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    layout:{padding:{left:4,right:4}},
+    scales:{
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      y:{position:'right',
+        ticks:{font:{size:10},padding:6,callback:v=>fmtObv(v)},
+        afterFit:s=>{s.width=64;},
+        grid:{color:'rgba(128,128,128,.1)'}}
+    },
+    plugins:{legend:{display:false},tooltip:{enabled:false}}
+  },plugins:[]
+});
+function fmtObv(v){
+  const man=v/10000;
+  if(Math.abs(man)<1)return Math.round(v).toLocaleString('ko-KR');
+  return Math.round(man).toLocaleString('ko-KR')+'만';
+}
 // 거래대금 차트 (억원 단위, 주황/골드 영역형 선)
 const VLC=new Chart(document.getElementById('cValue'),{
   type:'line',
@@ -546,6 +594,20 @@ function refresh(){
   else if(lastCross===-1){crossEl.textContent='▼ 데드크로스';crossEl.style.color='#2ECDA7';}
   else{crossEl.textContent='-';crossEl.style.color='#555';}
 
+  // OBV (On Balance Volume) + Signal(10, 단순이동평균) 차트
+  const obvArr=obvSeries();
+  OC.data.labels=lbls;
+  OC.data.datasets[0].data=vdata(i=>obvArr[i]);
+  OC.data.datasets[1].data=vdata(i=>obvSignalMA(obvArr,i,10));
+
+  // OBV 현재값 레이블 (Signal 대비 위/아래)
+  const lastObv=obvArr[obvArr.length-1];
+  const lastObvSig=obvSignalMA(obvArr,candles.length-1,10);
+  const obvEl=document.getElementById('vObv');
+  if(lastObvSig===null){obvEl.textContent='-';obvEl.style.color='#555';}
+  else if(lastObv>=lastObvSig){obvEl.textContent='▲ 상승';obvEl.style.color=bC;}
+  else{obvEl.textContent='▼ 하락';obvEl.style.color=sC;}
+
   // 거래대금 차트 (억원 단위)
   VLC.data.labels=lbls;
   VLC.data.datasets[0].data=vdata(i=>candles[i].volume*candles[i].close);
@@ -554,7 +616,7 @@ function refresh(){
   const lastValue=candles[candles.length-1].volume*candles[candles.length-1].close;
   document.getElementById('vValue').textContent=fmtEok(lastValue)+'억';
 
-  PC.update('none');MT.update('none');MC.update('none');VLC.update('none');
+  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');
   updateUI();
 }
 
