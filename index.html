@@ -110,6 +110,12 @@ button:active{opacity:.8;}
   <div class="card"><div class="lbl">현재 손익(수수료 차감)</div><div class="val" id="vPnl">-</div></div>
 </div>
 
+<div class="row" style="margin-bottom:4px;">
+  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+    <input type="checkbox" id="bbToggle" style="width:15px;height:15px;cursor:pointer;">
+    볼린저밴드(20,2)
+  </label>
+</div>
 <div class="cbox"><div class="cwrap pc"><canvas id="cPrice"></canvas></div></div>
 <div class="tradebar">
   <button class="g hideMob" id="btnBuyHalf">1/2분할매수</button>
@@ -201,6 +207,25 @@ function ma(p,idx){
   }
   return s/p;
 }
+// 볼린저밴드 (기간 20, 표준편차 배수 2) — 상단/하단만 사용, 중심선(SMA20)은 화면에 표시 안 함
+const BB_PERIOD=20, BB_MULT=2;
+function bbStats(idx){
+  let sum=0;
+  for(let i=idx-BB_PERIOD+1;i<=idx;i++){
+    const c=closeAt(i);
+    if(c===undefined)return null;
+    sum+=c;
+  }
+  const mid=sum/BB_PERIOD;
+  let sq=0;
+  for(let i=idx-BB_PERIOD+1;i<=idx;i++){
+    const c=closeAt(i);
+    sq+=(c-mid)*(c-mid);
+  }
+  return {mid,sd:Math.sqrt(sq/BB_PERIOD)};
+}
+function bbUpper(idx){const b=bbStats(idx);return b?b.mid+BB_MULT*b.sd:null;}
+function bbLower(idx){const b=bbStats(idx);return b?b.mid-BB_MULT*b.sd:null;}
 // 당일 세션(배열 0번 인덱스=장 시작) 기준 최고거래량
 function hvol(idx){
   let h=0;
@@ -438,9 +463,13 @@ function fmtEok(v){
   return Math.round(eok).toLocaleString('ko-KR');
 }
 
+let showBB=false; // 볼린저밴드 표시 여부 (토글)
+
 PC.data.datasets=[
   {label:'MA10',data:[],borderColor:'#F5A623',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
   {label:'MA40',data:[],borderColor:'#0F6E56',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+  {label:'BB상단',data:[],borderColor:'#9C6ADE',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],hidden:!showBB},
+  {label:'BB하단',data:[],borderColor:'#9C6ADE',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],hidden:!showBB},
 ];
 
 // ── 뷰 계산 ──────────────────────────────────────────────────
@@ -476,11 +505,18 @@ function refresh(){
   PC.data.labels=lbls;
   PC.data.datasets[0].data=vdata(i=>ma(10,i));
   PC.data.datasets[1].data=vdata(i=>ma(40,i));
+  PC.data.datasets[2].data=vdata(i=>bbUpper(i));
+  PC.data.datasets[3].data=vdata(i=>bbLower(i));
   PC.options.plugins.ann.list=buildPA();
   let mn=Infinity,mx=-Infinity;
   for(let i=s;i<candles.length;i++){
     if(candles[i].low<mn)mn=candles[i].low;
     if(candles[i].high>mx)mx=candles[i].high;
+    if(showBB){
+      const bu=bbUpper(i),bl=bbLower(i);
+      if(bu!==null&&bu>mx)mx=bu;
+      if(bl!==null&&bl<mn)mn=bl;
+    }
   }
   const pd=(mx-mn)*.08;
   PC.options.scales.y.min=mn-pd;PC.options.scales.y.max=mx+pd;
@@ -896,6 +932,12 @@ function showOv(m){
 function hideOv(){document.getElementById('overlay').className='';}
 
 // ── 이벤트 ───────────────────────────────────────────────────
+document.getElementById('bbToggle').onchange=(e)=>{
+  showBB=e.target.checked;
+  PC.data.datasets[2].hidden=!showBB;
+  PC.data.datasets[3].hidden=!showBB;
+  refresh();
+};
 document.getElementById('btnLoad').onclick=()=>{
   const v=document.getElementById('stockSel').value;
   if(v!=='' && stockList[+v])loadReal(stockList[+v].code, stockList[+v].date);
