@@ -41,6 +41,8 @@ button:active{opacity:.8;}
 #ovmsg{font-size:15px;font-weight:700;color:#378ADD;}
 @keyframes sp{to{transform:rotate(360deg)}}
 .mbuy{display:none;}
+.tradebar{display:flex;gap:8px;margin-bottom:8px;}
+.tradebar button{flex:1;padding:clamp(8px,1vw,14px) clamp(10px,1.6vw,20px);font-size:clamp(13px,1.3vw,17px);font-weight:700;}
 /* AI 패널 */
 #aiPanel{margin-top:14px;display:none;}
 .ai-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:13px;font-weight:700;color:#378ADD;}
@@ -56,6 +58,7 @@ button:active{opacity:.8;}
   .card .lbl{margin-bottom:0px;}
   .cwrap.pc{height:260px;}.cwrap.vc{height:75px;}.cwrap.dc{height:55px;}
   .hideMob{display:none;}
+  .tradebar{display:none;}
   .mbuy{display:flex;gap:8px;margin:8px 0;}
   .mbuy button{flex:1;padding:clamp(4px,1.8vw,8px) clamp(6px,3vw,14px);font-size:clamp(12px,3.6vw,16px);font-weight:700;}
 }
@@ -108,7 +111,7 @@ button:active{opacity:.8;}
 </div>
 
 <div class="cbox"><div class="cwrap pc"><canvas id="cPrice"></canvas></div></div>
-<div class="row">
+<div class="tradebar">
   <button class="g hideMob" id="btnBuyHalf">1/2분할매수</button>
   <button class="g hideMob" id="btnBuy">매수</button>
   <button class="r hideMob" id="btnSell">매도</button>
