@@ -244,6 +244,15 @@ function obvSignalMA(arr,idx,p){
   let s=0;for(let i=idx-p+1;i<=idx;i++)s+=arr[i];
   return s/p;
 }
+// OBV가 Signal(10)을 상향/하향 돌파하는 지점 (골든/데드크로스)
+function obvCross(arr,idx){
+  const cur=obvSignalMA(arr,idx,10),prev=obvSignalMA(arr,idx-1,10);
+  if(cur===null||prev===null)return 0;
+  const curV=arr[idx],prevV=arr[idx-1];
+  if(prevV<prev&&curV>=cur)return 1;   // 골든크로스
+  if(prevV>prev&&curV<=cur)return -1;  // 데드크로스
+  return 0;
+}
 // 당일 세션(배열 0번 인덱스=장 시작) 기준 최고거래량
 function hvol(idx){
   let h=0;
@@ -394,6 +403,16 @@ Chart.register({id:'ann',afterDraw(chart){
         ctx.beginPath();ctx.moveTo(px,by);ctx.lineTo(px,by-sz);ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();
         ctx.lineWidth=1.5;ctx.strokeStyle=a.cl;ctx.stroke();
       }
+    }else if(a.t==='tinyarrow'){
+      // 작은 보조지표 패널용 소형 화살표 (골든/데드크로스 표시 등)
+      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=4;
+      ctx.lineJoin='round';ctx.fillStyle=a.cl;ctx.strokeStyle=a.cl;ctx.lineWidth=1;
+      if(a.up){
+        ctx.beginPath();ctx.moveTo(px,py-sz);ctx.lineTo(px-sz,py+sz);ctx.lineTo(px+sz,py+sz);ctx.closePath();
+      }else{
+        ctx.beginPath();ctx.moveTo(px,py+sz);ctx.lineTo(px-sz,py-sz);ctx.lineTo(px+sz,py-sz);ctx.closePath();
+      }
+      ctx.fill();ctx.stroke();
     }
   }
   ctx.restore();
@@ -458,8 +477,8 @@ const MC=new Chart(document.getElementById('cMaCross'),{
 const OC=new Chart(document.getElementById('cObv'),{
   type:'line',
   data:{labels:[],datasets:[
-    {label:'OBV',data:[],borderColor:'#3B7DDB',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
-    {label:'Signal(10)',data:[],borderColor:'#D8622E',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+    {label:'OBV',data:[],borderColor:'#E8821E',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+    {label:'Signal(10)',data:[],borderColor:'#1a1a1a',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
   ]},
   options:{
     responsive:true,maintainAspectRatio:false,animation:false,
@@ -471,7 +490,7 @@ const OC=new Chart(document.getElementById('cObv'),{
         afterFit:s=>{s.width=64;},
         grid:{color:'rgba(128,128,128,.1)'}}
     },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
+    plugins:{legend:{display:false},tooltip:{enabled:false},ann:{list:[]}}
   },plugins:[]
 });
 function fmtObv(v){
@@ -599,6 +618,18 @@ function refresh(){
   OC.data.labels=lbls;
   OC.data.datasets[0].data=vdata(i=>obvArr[i]);
   OC.data.datasets[1].data=vdata(i=>obvSignalMA(obvArr,i,10));
+
+  // OBV 골든/데드크로스 지점에 작은 화살표 표시
+  const obvPad=padOffset();
+  const obvArrows=[];
+  for(let i=s;i<candles.length;i++){
+    const cr=obvCross(obvArr,i);
+    if(cr!==0){
+      obvArrows.push({t:'tinyarrow',xi:obvPad+(i-s),yi:obvArr[i],
+        cl:cr===1?'#F5A623':'#2ECDA7',up:cr===1});
+    }
+  }
+  OC.options.plugins.ann.list=obvArrows;
 
   // OBV 현재값 레이블 (Signal 대비 위/아래)
   const lastObv=obvArr[obvArr.length-1];
