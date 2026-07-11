@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1분봉 캔들차트 매매연습</title>
+<title>1분봉 실전차트 매매 연습</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#fff;color:#1a1a1a;padding:10px;font-size:13px;}
@@ -17,7 +17,7 @@ button:active{opacity:.8;}
 .mreal{font-weight:700;background:#F0FFF4;border-color:#0F6E56;color:#0F6E56;}
 .minact{background:#fafafa;border-color:#ccc;color:#555;font-weight:700;}
 .prl{margin-left:auto;font-size:15px;font-weight:700;}
-.dayl{margin-left:auto;font-weight:600;font-size:13px;}
+.dayl{font-weight:600;font-size:13px;}
 .banner{padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;margin-bottom:6px;}
 .brand{background:#EEF5FF;color:#378ADD;}
 .breal{background:#EDFAF3;color:#0F6E56;}
@@ -55,7 +55,7 @@ button:active{opacity:.8;}
   .card{padding:4px 8px;}
   .card .lbl{margin-bottom:0px;}
   .cwrap.pc{height:260px;}.cwrap.vc{height:75px;}.cwrap.dc{height:55px;}
-  .mbuy button{flex:1;padding:6px 12px;font-size:15px;font-weight:700;}
+  .mbuy button{flex:1;padding:clamp(4px,1.8vw,8px) clamp(6px,3vw,14px);font-size:clamp(12px,3.6vw,16px);font-weight:700;}
 }
 .pgtitle{font-size:20px;font-weight:800;margin-bottom:10px;color:#1a1a1a;}
 </style>
@@ -64,7 +64,7 @@ button:active{opacity:.8;}
 
 <div id="overlay"><div class="spin"></div><div id="ovmsg">로딩 중...</div></div>
 
-<div class="pgtitle">1봉 실전차트 매매 연습</div>
+<div class="pgtitle">1분봉 실전차트 매매 연습</div>
 <div class="row">
   <span class="prl" id="prLabel">가격: -</span>
 </div>
@@ -447,7 +447,7 @@ function buildPA(){
   const list=[],s=vs(),pad=padOffset();
   for(let i=s;i<candles.length;i++){
     const c=candles[i],li=pad+(i-s),up=c.close>=c.open;
-    list.push({t:'box',x1:li-.3,x2:li+.3,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
+    list.push({t:'box',x1:li-.35,x2:li+.35,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
     list.push({t:'wick',xi:li,hi:c.high,lo:c.low,cl:up?uC:dC});
     if(volSignal(i))list.push({t:'dot',xi:li,yi:c.high});
   }
