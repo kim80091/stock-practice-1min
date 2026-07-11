@@ -95,10 +95,6 @@ button:active{opacity:.8;}
   <button id="btnPause">⏸ 일시정지</button>
   <button id="btnReset">↺ 리셋</button>
 </div>
-<div class="row">
-  <span class="dayl" id="dayLabel">경과: 0분째</span>
-</div>
-
 <div class="stats">
   <div class="card"><div class="lbl">평가자산</div><div class="val" id="vAsset">100,000,000원</div></div>
   <div class="card"><div class="lbl">매수가</div><div class="val" id="vEntry">-</div></div>
@@ -111,10 +107,11 @@ button:active{opacity:.8;}
 </div>
 
 <div class="row" style="margin-bottom:4px;">
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:#9C6ADE;font-weight:600;">
     <input type="checkbox" id="bbToggle" style="width:15px;height:15px;cursor:pointer;">
     볼린저밴드(20,2)
   </label>
+  <span class="dayl" id="dayLabel" style="margin-left:auto;">경과: 0분째</span>
 </div>
 <div class="cbox"><div class="cwrap pc"><canvas id="cPrice"></canvas></div></div>
 <div class="tradebar">
