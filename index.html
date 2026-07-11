@@ -40,7 +40,7 @@ button:active{opacity:.8;}
 .spin{width:40px;height:40px;border:4px solid #ddd;border-top-color:#378ADD;border-radius:50%;animation:sp .8s linear infinite;}
 #ovmsg{font-size:15px;font-weight:700;color:#378ADD;}
 @keyframes sp{to{transform:rotate(360deg)}}
-.mbuy{display:none;}
+.mbuy{display:flex;gap:8px;margin:8px 0;}
 /* AI 패널 */
 #aiPanel{margin-top:14px;display:none;}
 .ai-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:13px;font-weight:700;color:#378ADD;}
@@ -55,16 +55,16 @@ button:active{opacity:.8;}
   .card{padding:4px 8px;}
   .card .lbl{margin-bottom:0px;}
   .cwrap.pc{height:260px;}.cwrap.vc{height:75px;}.cwrap.dc{height:55px;}
-  .hideMob{display:none;}
-  .mbuy{display:flex;gap:8px;margin:8px 0;}
   .mbuy button{flex:1;padding:6px 12px;font-size:15px;font-weight:700;}
 }
+.pgtitle{font-size:20px;font-weight:800;margin-bottom:10px;color:#1a1a1a;}
 </style>
 </head>
 <body>
 
 <div id="overlay"><div class="spin"></div><div id="ovmsg">로딩 중...</div></div>
 
+<div class="pgtitle">1봉 실전차트 매매 연습</div>
 <div class="row">
   <span class="prl" id="prLabel">가격: -</span>
 </div>
@@ -74,25 +74,24 @@ button:active{opacity:.8;}
   <button id="btnRandStock">🎲 다른 종목</button>
 </div>
 <div class="banner breal" id="banner">📈 실제 종목 매매연습 — 08:00 장 시작부터 재생</div>
+
 <div class="row">
-  <button id="btnStart">▶ 시작</button>
-  <button id="btnPause">⏸ 일시정지</button>
-  <button class="g hideMob" id="btnBuyHalf">1/2분할매수</button>
-  <button class="g hideMob" id="btnBuy">매수</button>
-  <button class="r hideMob" id="btnSell">매도</button>
-  <button class="r hideMob" id="btnSellHalf">1/2분할매도</button>
-  <button id="btnReset">↺ 리셋</button>
+  <span>원금</span>
+  <button id="c1">1천만</button><button id="c5">5천만</button>
+  <button id="c10" class="b">1억</button>
 </div>
 <div class="row">
   <span>속도</span>
   <button id="s05">0.5초</button><button id="s1" class="b">1초</button>
   <button id="s2">2초</button><button id="s3">3초</button>
-  <span class="dayl" id="dayLabel">경과: 0분째</span>
 </div>
 <div class="row">
-  <span>원금</span>
-  <button id="c1">1천만</button><button id="c5">5천만</button>
-  <button id="c10" class="b">1억</button>
+  <button id="btnStart">▶ 시작</button>
+  <button id="btnPause">⏸ 일시정지</button>
+  <button id="btnReset">↺ 리셋</button>
+</div>
+<div class="row">
+  <span class="dayl" id="dayLabel">경과: 0분째</span>
 </div>
 
 <div class="stats">
@@ -898,10 +897,6 @@ document.getElementById('btnReset').onclick=()=>{
   resetStats();
   if(curStock)loadReal(curStock.code, curStock.date);else refresh();
 };
-document.getElementById('btnBuy').onclick=()=>doBuy(1);
-document.getElementById('btnBuyHalf').onclick=()=>doBuy(.5);
-document.getElementById('btnSell').onclick=()=>doSell(1);
-document.getElementById('btnSellHalf').onclick=()=>doSell(.5);
 document.getElementById('btnBuyM').onclick=()=>doBuy(1);
 document.getElementById('btnBuyHalfM').onclick=()=>doBuy(.5);
 document.getElementById('btnSellM').onclick=()=>doSell(1);
