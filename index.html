@@ -934,6 +934,7 @@ function hideOv(){document.getElementById('overlay').className='';}
 // ── 이벤트 ───────────────────────────────────────────────────
 document.getElementById('bbToggle').onchange=(e)=>{
   showBB=e.target.checked;
+  localStorage.setItem('bb_enabled',showBB?'1':'0');
   PC.data.datasets[2].hidden=!showBB;
   PC.data.datasets[3].hidden=!showBB;
   refresh();
@@ -973,6 +974,17 @@ document.getElementById('btnSellHalfM').onclick=()=>doSell(.5);
     updateUI();
   };
 });
+
+// 저장된 볼린저밴드 설정 복원 (새로고침/재시작해도 유지)
+try{
+  const savedBB=localStorage.getItem('bb_enabled');
+  if(savedBB==='1'){
+    showBB=true;
+    document.getElementById('bbToggle').checked=true;
+    PC.data.datasets[2].hidden=false;
+    PC.data.datasets[3].hidden=false;
+  }
+}catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값(꺼짐) 유지 */}
 
 // ── 시작 ─────────────────────────────────────────────────────
 loadStockList();
