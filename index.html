@@ -160,7 +160,7 @@ button:active{opacity:.8;}
 'use strict';
 
 const WORKER='https://candle-practice-1min.kim80091.workers.dev'; // TODO: 실제 배포 후 주소 확인/교체
-const FEE=.005, VP=8, VIS=90;
+const FEE=.0023, VP=8, VIS=90; // 키움증권 실수수료: 매수 0.015% + 매도 0.215% = 왕복 0.230%
 let stockList=[], curStock=null;
 let shuffleBag=[]; // "다른 종목" 뽑을 때 다 한 번씩 나올 때까지 중복 안 되게 뽑는 통
 
