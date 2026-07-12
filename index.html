@@ -382,10 +382,11 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.stroke();
     }else if(a.t==='arrow'){
       const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=a.half?7*.65:7;
+      const gap=10; // 캔들과 화살표 사이 최소 여백(고정 픽셀) — 캔들을 가리지 않도록
       ctx.lineJoin='round';
       if(a.up){
-        const by=py+sz*2.4;
-        ctx.beginPath();ctx.moveTo(px,by-sz*1.8);ctx.lineTo(px-sz,by);ctx.lineTo(px+sz,by);ctx.closePath();
+        const tipY=py+gap,by=tipY+sz*1.8;
+        ctx.beginPath();ctx.moveTo(px,tipY);ctx.lineTo(px-sz,by);ctx.lineTo(px+sz,by);ctx.closePath();
         ctx.fillStyle='#fff';ctx.fill();
         ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();
         ctx.fillStyle=a.cl;ctx.fill();
@@ -393,8 +394,8 @@ Chart.register({id:'ann',afterDraw(chart){
         ctx.beginPath();ctx.moveTo(px,by);ctx.lineTo(px,by+sz);ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();
         ctx.lineWidth=1.5;ctx.strokeStyle=a.cl;ctx.stroke();
       }else{
-        const by=py-sz*2.4;
-        ctx.beginPath();ctx.moveTo(px,by+sz*1.8);ctx.lineTo(px-sz,by);ctx.lineTo(px+sz,by);ctx.closePath();
+        const tipY=py-gap,by=tipY-sz*1.8;
+        ctx.beginPath();ctx.moveTo(px,tipY);ctx.lineTo(px-sz,by);ctx.lineTo(px+sz,by);ctx.closePath();
         ctx.fillStyle='#fff';ctx.fill();
         ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();
         ctx.fillStyle=a.cl;ctx.fill();
