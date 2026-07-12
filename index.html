@@ -381,8 +381,8 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.lineTo(x.getPixelForValue(a.x2),y.getPixelForValue(a.yv));
       ctx.stroke();
     }else if(a.t==='arrow'){
-      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=a.half?11*.65:11;
-      const gap=10; // 캔들과 화살표 사이 최소 여백(고정 픽셀) — 캔들을 가리지 않도록
+      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=a.half?8*.65:8;
+      const gap=16; // 캔들과 화살표 사이 최소 여백(고정 픽셀) — 캔들을 가리지 않도록
       ctx.lineJoin='round';
       if(a.up){
         const tipY=py+gap,by=tipY+sz*1.8;
@@ -1064,6 +1064,7 @@ document.getElementById('btnSellHalfM').onclick=()=>doSell(.5);
 [['s05',.5],['s1',1],['s2',2],['s3',3]].forEach(([id,v])=>{
   document.getElementById(id).onclick=()=>{
     intSec=v;
+    localStorage.setItem('speed_sec',String(v));
     ['s05','s1','s2','s3'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
     if(timer){stopT();startT();}  // 재생 중이면 즉시 새 속도로 다시 시작
   };
@@ -1071,6 +1072,7 @@ document.getElementById('btnSellHalfM').onclick=()=>doSell(.5);
 [['c1',10000000],['c5',50000000],['c10',100000000]].forEach(([id,v])=>{
   document.getElementById(id).onclick=()=>{
     capital=v;
+    localStorage.setItem('capital_won',String(v));
     ['c1','c5','c10'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
     updateUI();
   };
@@ -1086,6 +1088,24 @@ try{
     PC.data.datasets[3].hidden=false;
   }
 }catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값(꺼짐) 유지 */}
+
+// 저장된 속도/원금 설정 복원
+try{
+  const savedSpeed=localStorage.getItem('speed_sec');
+  if(savedSpeed){
+    intSec=parseFloat(savedSpeed);
+    const idMap={'0.5':'s05','1':'s1','2':'s2','3':'s3'};
+    const id=idMap[savedSpeed];
+    if(id)['s05','s1','s2','s3'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
+  }
+  const savedCapital=localStorage.getItem('capital_won');
+  if(savedCapital){
+    capital=parseInt(savedCapital,10);
+    const idMap={'10000000':'c1','50000000':'c5','100000000':'c10'};
+    const id=idMap[savedCapital];
+    if(id)['c1','c5','c10'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
+  }
+}catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값 유지 */}
 
 // ── 시작 ─────────────────────────────────────────────────────
 loadStockList();
