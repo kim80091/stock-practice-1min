@@ -8,7 +8,8 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#fff;color:#1a1a1a;padding:10px;font-size:13px;}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
-button{font-family:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid #ccc;background:#fafafa;color:#333;cursor:pointer;}
+button{font-family:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid #ccc;background:#fafafa;color:#333;cursor:pointer;transition:transform .08s ease,filter .08s ease,box-shadow .08s ease;}
+button:active{transform:scale(.94);filter:brightness(.9);box-shadow:inset 0 1px 3px rgba(0,0,0,.2);}
 button:active{opacity:.8;}
 .g{border-color:#0F6E56;color:#0F6E56;}
 .r{border-color:#993556;color:#993556;}
@@ -74,7 +75,7 @@ button:active{opacity:.8;}
   <select id="stockSel"><option>종목 로딩 중...</option></select>
   <button id="btnLoad" style="font-weight:700">불러오기</button>
   <button id="btnRandStock">🎲 랜덤</button>
-  <span class="prl" id="prLabel">가격: -</span>
+  <button id="btnReset" title="리셋">↺</button>
 </div>
 <div class="banner breal" id="banner">📈 실제 종목 매매연습 — 08:00 장 시작부터 재생</div>
 
@@ -88,14 +89,9 @@ button:active{opacity:.8;}
   <button id="s05">0.5초</button><button id="s1" class="b">1초</button>
   <button id="s2">2초</button><button id="s3">3초</button>
 </div>
-<div class="row">
-  <button id="btnStart">▶ 시작</button>
-  <button id="btnPause">⏸ 일시정지</button>
-  <button id="btnReset">↺ 리셋</button>
-</div>
 <div class="stats">
   <div class="card"><div class="lbl">평가자산</div><div class="val" id="vAsset">100,000,000원</div></div>
-  <div class="card"><div class="lbl">매수가</div><div class="val" id="vEntry">-</div></div>
+  <div class="card"><div class="lbl">누적손익 금액</div><div class="val" id="vPnlAmt">0원</div></div>
   <div class="card"><div class="lbl">평균 보유기간</div><div class="val" id="vAvgHold">-</div></div>
   <div class="card"><div class="lbl">매매 승률 (횟수)</div><div class="val" id="vWin">-</div></div>
   <div class="card"><div class="lbl">보유 경과</div><div class="val" id="vHold">-</div></div>
@@ -117,12 +113,14 @@ button:active{opacity:.8;}
   <button class="g hideMob" id="btnBuy">매수</button>
   <button class="r hideMob" id="btnSell">매도</button>
   <button class="r hideMob" id="btnSellHalf">1/2분할매도</button>
+  <button class="hideMob" id="btnToggleT">▶</button>
 </div>
 <div class="mbuy">
   <button class="g" id="btnBuyHalfM">½매수</button>
   <button class="g" id="btnBuyM">매수</button>
   <button class="r" id="btnSellM">매도</button>
   <button class="r" id="btnSellHalfM">½매도</button>
+  <button id="btnToggleTM">▶</button>
 </div>
 <div class="cbox">
   <div class="ddrow"><span>MA40 추세 방향</span><span class="ddval" id="vMaTrend" style="color:#378ADD;">-</span></div>
@@ -350,6 +348,7 @@ function maStatus(s){
 // ── 차트 플러그인 ─────────────────────────────────────────────
 const uC='#E24B4A',dC='#378ADD',uV='rgba(226,75,74,.5)',dV='rgba(55,138,221,.5)';
 const bC='#0F6E56',sC='#993556';
+const pC='#D93025',lC='#2F6FD3'; // 손익 표시 전용: 수익=빨강, 손실=파랑
 
 Chart.register({id:'ann',afterDraw(chart){
   const o=chart.options.plugins&&chart.options.plugins.ann;
@@ -643,8 +642,8 @@ function refresh(){
   const obvEl=document.getElementById('vObv');
   obvEl.textContent=fmtObv(lastObv);
   if(lastObvSig===null)obvEl.style.color='#555';
-  else if(lastObv>=lastObvSig)obvEl.style.color=bC;
-  else obvEl.style.color=sC;
+  else if(lastObv>=lastObvSig)obvEl.style.color=pC;
+  else obvEl.style.color=lC;
 
   // 거래대금 차트 (억원 단위)
   VLC.data.labels=lbls;
@@ -663,32 +662,32 @@ function fp(v){return Math.round(v).toLocaleString('ko-KR');}
 function updateUI(){
   if(!candles.length)return;
   const last=candles[candles.length-1];
-  document.getElementById('prLabel').textContent='가격: '+fp(last.close);
   if(pos){
-    const pctTxt=pos.frac<0.999?' ('+Math.round(pos.frac*100)+'% 보유)':'';
-    document.getElementById('vEntry').textContent=fp(pos.p)+pctTxt;
     const net=(last.close-pos.p)/pos.p*100-FEE*100;
     const el=document.getElementById('vPnl');
-    el.textContent=net.toFixed(1)+'%';el.style.color=net>=0?bC:sC;
-    document.getElementById('vHold').textContent=(elapsed-pos.d)+'분째';
+    el.textContent=net.toFixed(1)+'%';el.style.color=net>=0?pC:lC;
+    const pctTxt=pos.frac<0.999?' ('+Math.round(pos.frac*100)+'% 보유)':'';
+    document.getElementById('vHold').textContent=(elapsed-pos.d)+'분째'+pctTxt;
   }else{
-    document.getElementById('vEntry').textContent='-';
     const el=document.getElementById('vPnl');el.textContent='-';el.style.color='#1a1a1a';
     document.getElementById('vHold').textContent='-';
   }
   let asset=capital*(1+tPnl/100);
   if(pos){const net=(last.close-pos.p)/pos.p*100-FEE*100;asset=capital*(1+(tPnl+net*pos.frac)/100);}
   const ael=document.getElementById('vAsset');
-  ael.textContent=fp(Math.round(asset))+'원';ael.style.color=asset>=capital?bC:sC;
+  ael.textContent=fp(Math.round(asset))+'원';ael.style.color=asset>=capital?pC:lC;
+  const pnlAmt=Math.round(asset-capital);
+  const pel=document.getElementById('vPnlAmt');
+  pel.textContent=(pnlAmt>=0?'+':'')+fp(pnlAmt)+'원';pel.style.color=pnlAmt>=0?pC:lC;
   const anel=document.getElementById('vAnnual');
   if(tPnl!==0||wins+losses>0){
     anel.textContent=tPnl.toFixed(1)+'%';
-    anel.style.color=tPnl>0?bC:(tPnl<0?sC:'#1a1a1a');
+    anel.style.color=tPnl>0?pC:(tPnl<0?lC:'#1a1a1a');
   }else{anel.textContent='-';anel.style.color='#1a1a1a';}
   const tot=wins+losses;
   document.getElementById('vTradeCount').textContent=tot+'회';
   const wrel=document.getElementById('vWin');
-  if(tot>0){const wr=wins/tot*100;wrel.textContent=wr.toFixed(1)+'% ('+tot+'회)';wrel.style.color=wr>=50?bC:sC;}
+  if(tot>0){const wr=wins/tot*100;wrel.textContent=wr.toFixed(1)+'% ('+tot+'회)';wrel.style.color=wr>=50?pC:lC;}
   else{wrel.textContent='0% (0회)';wrel.style.color='#1a1a1a';}
   document.getElementById('vAvgHold').textContent=tot>0?(holdSum/tot).toFixed(1)+'분':'-';
   document.getElementById('dayLabel').textContent='경과: '+elapsed+'분째';
@@ -793,8 +792,15 @@ function tick(){
   }
   refresh();
 }
-function startT(){if(timer)return;timer=setInterval(tick,intSec*1000);}
-function stopT(){if(timer){clearInterval(timer);timer=null;}}
+function startT(){if(timer)return;timer=setInterval(tick,intSec*1000);updateToggleLabel();}
+function stopT(){if(timer){clearInterval(timer);timer=null;}updateToggleLabel();}
+function updateToggleLabel(){
+  const label=timer?'⏸':'▶';
+  const t1=document.getElementById('btnToggleT'),t2=document.getElementById('btnToggleTM');
+  if(t1)t1.textContent=label;
+  if(t2)t2.textContent=label;
+}
+function toggleStart(){if(timer)stopT();else startT();}
 
 // ── 초기화 ───────────────────────────────────────────────────
 function resetStats(){
@@ -1038,8 +1044,8 @@ document.getElementById('btnLoad').onclick=()=>{
   if(v!=='' && stockList[+v])loadReal(stockList[+v].code, stockList[+v].date);
 };
 document.getElementById('btnRandStock').onclick=loadRandomStock;
-document.getElementById('btnStart').onclick=startT;
-document.getElementById('btnPause').onclick=stopT;
+document.getElementById('btnToggleT').onclick=toggleStart;
+document.getElementById('btnToggleTM').onclick=toggleStart;
 document.getElementById('btnReset').onclick=()=>{
   stopT();
   resetStats();
