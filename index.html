@@ -131,12 +131,16 @@ button:active{opacity:.8;}
   <div class="cwrap" style="height:55px;"><canvas id="cMaCross"></canvas></div>
 </div>
 <div class="cbox">
-  <div class="ddrow"><span>OBV (Signal 10, 단순)</span><span class="ddval" id="vObv" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:55px;"><canvas id="cObv"></canvas></div>
+  <div class="ddrow"><span>볼린저밴드 이격</span><span class="ddval" id="vBbDev" style="color:#555;">-</span></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cBbDev"></canvas></div>
 </div>
 <div class="cbox">
   <div class="ddrow"><span>거래대금</span><span class="ddval" id="vValue" style="color:#555;">-</span></div>
   <div class="cwrap" style="height:55px;"><canvas id="cValue"></canvas></div>
+</div>
+<div class="cbox">
+  <div class="ddrow"><span>OBV (Signal 10, 단순)</span><span class="ddval" id="vObv" style="color:#555;">-</span></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cObv"></canvas></div>
 </div>
 <div class="logtitle">거래 내역</div>
 <div id="tlog"></div>
@@ -223,6 +227,17 @@ function bbStats(idx){
 }
 function bbUpper(idx){const b=bbStats(idx);return b?b.mid+BB_MULT*b.sd:null;}
 function bbLower(idx){const b=bbStats(idx);return b?b.mid-BB_MULT*b.sd:null;}
+// 볼린저밴드 이격: 상한선 근접=+10, 하한선 근접=-10, 중심선(SMA20)=0
+function bbDeviation(idx){
+  const b=bbStats(idx);
+  if(!b)return null;
+  const upper=b.mid+BB_MULT*b.sd,lower=b.mid-BB_MULT*b.sd,range=upper-lower;
+  if(range<=0)return 0;
+  const price=closeAt(idx);
+  if(price===undefined)return null;
+  const pctB=(price-lower)/range; // 0=하한선, 0.5=중심선, 1=상한선 (밴드 밖이면 범위 벗어난 값도 가능)
+  return (pctB-0.5)*20;
+}
 
 // OBV (On Balance Volume) — 당일 세션(0번 인덱스=장 시작) 기준 누적
 function obvSeries(){
@@ -513,6 +528,26 @@ function fmtObv(v){
   if(Math.abs(man)<1)return Math.round(v).toLocaleString('ko-KR');
   return Math.round(man).toLocaleString('ko-KR')+'만';
 }
+// 볼린저밴드 이격 차트 (-10 하한선 ~ +10 상한선)
+const BDC=new Chart(document.getElementById('cBbDev'),{
+  type:'line',
+  data:{labels:[],datasets:[
+    {label:'BB이격',data:[],borderColor:'#9C6ADE',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    layout:{padding:{left:4,right:4}},
+    scales:{
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      y:{position:'right',min:-12,max:12,
+        ticks:{font:{size:10},padding:6,stepSize:10},
+        afterFit:s=>{s.width=64;},
+        grid:{color:'rgba(128,128,128,.1)'}}
+    },
+    plugins:{legend:{display:false},tooltip:{enabled:false}}
+  },plugins:[]
+});
+
 // 거래대금 차트 (억원 단위, 주황/골드 영역형 선)
 const VLC=new Chart(document.getElementById('cValue'),{
   type:'line',
@@ -655,6 +690,17 @@ function refresh(){
   else if(lastObv>=lastObvSig)obvEl.style.color=pC;
   else obvEl.style.color=lC;
 
+  // 볼린저밴드 이격 차트 (-10~+10)
+  BDC.data.labels=lbls;
+  BDC.data.datasets[0].data=vdata(i=>bbDeviation(i));
+  const lastBbDev=bbDeviation(candles.length-1);
+  const bbDevEl=document.getElementById('vBbDev');
+  if(lastBbDev===null){bbDevEl.textContent='-';bbDevEl.style.color='#555';}
+  else{
+    bbDevEl.textContent=lastBbDev.toFixed(1);
+    bbDevEl.style.color=lastBbDev>=10?pC:lastBbDev<=-10?lC:'#555';
+  }
+
   // 거래대금 차트 (억원 단위)
   VLC.data.labels=lbls;
   VLC.data.datasets[0].data=vdata(i=>candles[i].volume*candles[i].close);
@@ -663,7 +709,7 @@ function refresh(){
   const lastValue=candles[candles.length-1].volume*candles[candles.length-1].close;
   document.getElementById('vValue').textContent=fmtEok(lastValue)+'억';
 
-  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');
+  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');BDC.update('none');
   updateUI();
 }
 
