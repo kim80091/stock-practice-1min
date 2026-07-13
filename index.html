@@ -442,6 +442,15 @@ function mkChart(id,type,yEx){
 }
 
 const PC=mkChart('cPrice','line');
+PC.options.scales.x.ticks={
+  display:true,autoSkip:true,maxTicksLimit:6,font:{size:9},color:'#888',
+  callback:function(value){
+    const pad=padOffset(),s=vs();
+    const idx=s+(value-pad);
+    if(idx<0||idx>=candles.length||!candles[idx]||!candles[idx].time)return'';
+    return candles[idx].time.slice(11,16); // "HH:MM"
+  }
+};
 
 
 // MA40 추세 방향 차트 (막대: 1=상승/빨강, -1=하락/파랑, 0=횡보/회색)
@@ -855,7 +864,7 @@ async function loadReal(code, date){
     if(js.error)throw new Error(js.error);
     if(!js.candles||js.candles.length<10)throw new Error('데이터 부족');
 
-    const allCandles=js.candles.map(d=>({open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume}));
+    const allCandles=js.candles.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume}));
     const total=allCandles.length;
 
     // 항상 08:00 첫 봉부터 시작 — 첫 번째 봉만 미리 표시하고, 이후는 시작 버튼으로 1분씩 재생
