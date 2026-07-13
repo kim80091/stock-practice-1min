@@ -698,7 +698,7 @@ function refresh(){
   if(lastBbDev===null){bbDevEl.textContent='-';bbDevEl.style.color='#555';}
   else{
     bbDevEl.textContent=lastBbDev.toFixed(1);
-    bbDevEl.style.color=lastBbDev>=10?pC:lastBbDev<=-10?lC:'#555';
+    bbDevEl.style.color=lastBbDev>0?pC:lastBbDev<0?lC:'#1a1a1a';
   }
 
   // 거래대금 차트 (억원 단위)
