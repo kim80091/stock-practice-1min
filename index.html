@@ -130,23 +130,23 @@ button:active{opacity:.8;}
 </div>
 <div class="cbox">
   <div class="ddrow"><span>MA40 추세 방향</span><span class="ddval" id="vMaTrend" style="color:#378ADD;">-</span></div>
-  <div class="cwrap" style="height:42px;"><canvas id="cMaTrend"></canvas></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cMaTrend"></canvas></div>
 </div>
 <div class="cbox">
   <div class="ddrow"><span>MA40 골드,데드 크로스</span><span class="ddval" id="vMaCross" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:42px;"><canvas id="cMaCross"></canvas></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cMaCross"></canvas></div>
 </div>
 <div class="cbox">
   <div class="ddrow"><span>볼린저밴드 이격</span><span class="ddval" id="vBbDev" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:42px;"><canvas id="cBbDev"></canvas></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cBbDev"></canvas></div>
 </div>
 <div class="cbox">
   <div class="ddrow"><span>거래대금</span><span class="ddval" id="vValue" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:42px;"><canvas id="cValue"></canvas></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cValue"></canvas></div>
 </div>
 <div class="cbox">
   <div class="ddrow"><span>OBV (Signal 10, 단순)</span><span class="ddval" id="vObv" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:42px;"><canvas id="cObv"></canvas></div>
+  <div class="cwrap" style="height:55px;"><canvas id="cObv"></canvas></div>
 </div>
 <div class="logtitle">거래 내역</div>
 <div id="tlog"></div>
@@ -554,13 +554,13 @@ const BDC=new Chart(document.getElementById('cBbDev'),{
   },plugins:[]
 });
 
-// 거래대금 차트 (억원 단위, 주황/골드 영역형 선)
+// 거래대금 차트 (억원 단위, 주황 막대그래프)
 const VLC=new Chart(document.getElementById('cValue'),{
-  type:'line',
+  type:'bar',
   data:{labels:[],datasets:[{
     label:'거래대금',data:[],
-    borderColor:'#F2A93B',backgroundColor:'rgba(242,169,59,.35)',
-    borderWidth:1.3,pointRadius:0,tension:.15,fill:true,spanGaps:true,
+    backgroundColor:'#F2A93B',borderWidth:0,
+    barPercentage:.7,categoryPercentage:.9,
   }]},
   options:{
     responsive:true,maintainAspectRatio:false,animation:false,
