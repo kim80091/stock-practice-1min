@@ -943,7 +943,11 @@ async function loadReal(code, date){
     elapsed=0;  // 연습 시작 시점부터 0으로 카운팅
     resetStats();refresh();
 
-    setBanner('📈 '+curStock.name+' ('+code+') | '+curStock.date+' 08:00 장 시작부터 재생 (총 '+total+'분)','breal');
+    const firstT=allCandles[0].time?allCandles[0].time.slice(11,16):'';
+    const lastT=allCandles[allCandles.length-1].time?allCandles[allCandles.length-1].time.slice(11,16):'';
+    const dateCompact=(curStock.date||date).replace(/-/g,'');
+    const missingTxt=(js.missing_minutes&&js.missing_minutes>0)?' (부분누락)':'';
+    setBanner('📈 '+curStock.name+' | '+dateCompact+' | '+firstT+'~'+lastT+missingTxt,'breal');
     hideOv();
   }catch(e){
     hideOv();alert('불러오기 실패: '+e.message);
@@ -1171,14 +1175,6 @@ try{
     if(id)['c1','c5','c10'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
   }
 }catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값 유지 */}
-
-// ── 디버그용 (콘솔에서 window.__debug 로 확인, 나중에 제거 예정) ──
-window.__debug = {
-  get histLen(){return histCandles.length;},
-  get curStock(){return curStock;},
-  get ma40First(){return ma(40,0);},
-  get bbFirst(){return bbStats(0);},
-};
 
 // ── 시작 ─────────────────────────────────────────────────────
 loadStockList();
