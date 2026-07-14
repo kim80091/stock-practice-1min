@@ -1172,6 +1172,14 @@ try{
   }
 }catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값 유지 */}
 
+// ── 디버그용 (콘솔에서 window.__debug 로 확인, 나중에 제거 예정) ──
+window.__debug = {
+  get histLen(){return histCandles.length;},
+  get curStock(){return curStock;},
+  get ma40First(){return ma(40,0);},
+  get bbFirst(){return bbStats(0);},
+};
+
 // ── 시작 ─────────────────────────────────────────────────────
 loadStockList();
 
