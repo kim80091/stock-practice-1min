@@ -155,6 +155,7 @@ button:active{opacity:.8;}
 <div id="aiPanel">
   <div class="ai-title">
     🤖 AI 매매 분석
+    <button id="btnAiRequest" style="font-size:12px;padding:4px 10px;margin-left:8px;">이번 거래 분석 요청</button>
     <span id="aiStatus" style="font-size:11px;color:#aaa;font-weight:400;"></span>
   </div>
   <div id="aiTradeBox">
@@ -191,7 +192,7 @@ function drawFromBag(){
 let candles=[], timer=null, pos=null, tPnl=0, trades=[];
 let intSec=1, elapsed=0, capital=100000000;
 let wins=0, losses=0, holdSum=0;
-let tradeHistory=[], aiCount=0;
+let tradeHistory=[], aiCount=0, lastTradeRecord=null;
 
 // ── 지표 ─────────────────────────────────────────────────────
 let histCandles=[]; // 전일 마지막 50분 종가 (MA10/MA40 시드용, 화면엔 안 그려짐)
@@ -828,8 +829,9 @@ function doSell(sellFrac){
       buySnap:pos.snap,sellSnap:snapshot(idx)
     };
     tradeHistory.push(record);
+    lastTradeRecord=record;
     pos=null;refresh();
-    requestAIAnalysis(record);
+    document.getElementById('aiStatus').textContent='분석 대기 중 — 버튼을 눌러 요청하세요';
   }else{
     refresh();
   }
@@ -871,7 +873,7 @@ function toggleStart(){if(timer)stopT();else startT();}
 // ── 초기화 ───────────────────────────────────────────────────
 function resetStats(){
   pos=null;tPnl=0;trades=[];wins=0;losses=0;holdSum=0;
-  tradeHistory=[];aiCount=0;
+  tradeHistory=[];aiCount=0;lastTradeRecord=null;
   document.getElementById('tlog').innerHTML='';
   document.getElementById('aiPanel').style.display='none';
   document.getElementById('aiTradeBox').style.display='none';
@@ -1020,7 +1022,6 @@ MA 배열: ${maStatus(ss)}
     document.getElementById('aiTradeText').textContent=text;
     document.getElementById('aiStatus').textContent='✅ 분석 완료';
     aiCount++;
-    if(tot>=3&&aiCount%3===0)requestPatternAnalysis();
   }catch(e){
     document.getElementById('aiTradeText').textContent='AI 분석 오류: '+e.message;
     document.getElementById('aiStatus').textContent='❌ 오류';
@@ -1102,6 +1103,15 @@ function showOv(m){
 function hideOv(){document.getElementById('overlay').className='';}
 
 // ── 이벤트 ───────────────────────────────────────────────────
+document.getElementById('btnAiRequest').onclick=()=>{
+  if(!lastTradeRecord){
+    alert('완료된 거래(매도로 청산된 거래)가 아직 없습니다.');
+    return;
+  }
+  requestAIAnalysis(lastTradeRecord);
+  const tot=wins+losses;
+  if(tot>=3)requestPatternAnalysis();
+};
 document.getElementById('bbToggle').onchange=(e)=>{
   showBB=e.target.checked;
   localStorage.setItem('bb_enabled',showBB?'1':'0');
