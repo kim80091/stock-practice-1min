@@ -195,7 +195,8 @@ let wins=0, losses=0, holdSum=0;
 let tradeHistory=[], aiCount=0, lastTradeRecord=null;
 
 // ── 지표 ─────────────────────────────────────────────────────
-let histCandles=[]; // 전일 마지막 50분 종가 (MA10/MA40 시드용, 화면엔 안 그려짐)
+const TAIL_VISIBLE=20; // 전일 마지막 몇 분을 실제 캔들로 화면에 보여줄지
+let histCandles=[]; // 전일 시드 중 화면에 안 보이는 부분(계산 전용, TAIL_VISIBLE보다 이전 구간)
 
 // idx>=0: 오늘 candles 배열, idx<0: 전일 시드(histCandles)에서 역산해서 가져옴
 function closeAt(idx){
@@ -275,8 +276,9 @@ function obvCross(arr,idx){
 }
 // 당일 세션(배열 0번 인덱스=장 시작) 기준 최고거래량
 function hvol(idx){
+  const start=window._todayStartIdx||0;
   let h=0;
-  for(let i=0;i<=idx;i++)if(candles[i].volume>h)h=candles[i].volume;
+  for(let i=start;i<=idx;i++)if(candles[i]&&candles[i].volume>h)h=candles[i].volume;
   return h;
 }
 // 최고거래량90%,20억 신호
@@ -375,7 +377,7 @@ const pC='#D93025',lC='#2F6FD3'; // 손익 표시 전용: 수익=빨강, 손실=
 Chart.register({id:'ann',afterDraw(chart){
   const o=chart.options.plugins&&chart.options.plugins.ann;
   if(!o||!o.list)return;
-  const{ctx,scales}=chart;
+  const{ctx,scales,chartArea}=chart;
   const x=scales.x,y=scales.y;
   ctx.save();
   for(const a of o.list){
@@ -402,6 +404,13 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.moveTo(x.getPixelForValue(a.x1),y.getPixelForValue(a.yv));
       ctx.lineTo(x.getPixelForValue(a.x2),y.getPixelForValue(a.yv));
       ctx.stroke();
+    }else if(a.t==='vline'){
+      ctx.strokeStyle='rgba(120,120,120,.55)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+      const px=x.getPixelForValue(a.xi);
+      ctx.beginPath();
+      ctx.moveTo(px,chartArea.top);ctx.lineTo(px,chartArea.bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
     }else if(a.t==='arrow'){
       const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=a.half?8*.65:8;
       const gap=16; // 캔들과 화살표 사이 최소 여백(고정 픽셀) — 캔들을 가리지 않도록
@@ -608,13 +617,18 @@ function buildPA(){
     const c=candles[i],li=pad+(i-s),up=c.close>=c.open;
     list.push({t:'box',x1:li-.35,x2:li+.35,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
     list.push({t:'wick',xi:li,hi:c.high,lo:c.low,cl:up?uC:dC});
-    if(volSignal(i))list.push({t:'dot',xi:li,yi:c.high});
+    if(i>=(window._todayStartIdx||0)&&volSignal(i))list.push({t:'dot',xi:li,yi:c.high});
   }
   trades.forEach(t=>{
     if(t.i<s||t.i>=candles.length)return;
     const c=candles[t.i],li=pad+(t.i-s);
     list.push({t:'arrow',xi:li,yi:t.buy?c.low:c.high,cl:t.buy?bC:sC,up:t.buy,half:t.half});
   });
+  // 날짜 분기선 (전일 프리픽스 ↔ 오늘 첫 봉 경계)
+  if(window._todayStartIdx!==undefined&&window._todayStartIdx>=s&&window._todayStartIdx<candles.length){
+    const li=pad+(window._todayStartIdx-s);
+    list.push({t:'vline',xi:li-.5});
+  }
   return list;
 }
 // ── 차트 갱신 ────────────────────────────────────────────────
@@ -922,31 +936,42 @@ async function loadReal(code, date){
     if(js.error)throw new Error(js.error);
     if(!js.candles||js.candles.length<10)throw new Error('데이터 부족');
 
-    const allCandles=js.candles.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume}));
-    const total=allCandles.length;
+    const todayCandles=js.candles.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume}));
+    const total=todayCandles.length;
 
-    // 항상 08:00 첫 봉부터 시작 — 첫 번째 봉만 미리 표시하고, 이후는 시작 버튼으로 1분씩 재생
-    const startIdx = 1;
-    candles = allCandles.slice(0, startIdx);
-    // 전체 데이터 저장 (시작 이후 봉 추가용)
-    window._realAllCandles = allCandles;
-    window._realNextIdx = startIdx;
-
-    // 전일 마지막 50분 시드 데이터 (MA10/MA40을 첫 봉부터 바로 표시하기 위함)
-    // 데이터가 하루치뿐이거나 전일에 이 종목이 없었으면 tail:null → 그냥 빈 배열(기존과 동일하게 서서히 표시)
+    // 전일 마지막 분봉 시드 데이터 조회 — 최근 TAIL_VISIBLE분은 실제 캔들로 화면에 보여주고,
+    // 그 이전 분(최대 TAIL_LEN분까지)은 화면엔 안 보이되 MA10/MA40/볼린저밴드 계산에만 사용
+    let visiblePrefix=[];
     histCandles=[];
     try{
       const tres=await fetch(WORKER+'/tail1m?code='+code+'&date='+date);
       const tjs=await tres.json();
-      if(tjs.tail&&tjs.tail.length)histCandles=tjs.tail;
+      if(tjs.tail&&tjs.tail.length){
+        const tail=tjs.tail; // 오래된→최신 순
+        const visCount=Math.min(TAIL_VISIBLE,tail.length);
+        visiblePrefix=tail.slice(tail.length-visCount);
+        histCandles=tail.slice(0,tail.length-visCount);
+      }
     }catch(e){/* 시드 데이터 없어도 무방, 기존 방식대로 동작 */}
+
+    const allCandles=visiblePrefix.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume})).concat(todayCandles);
+    const todayStartIdx=visiblePrefix.length; // 오늘 첫 봉의 인덱스 — 날짜분기선 위치
+
+    // 항상 오늘 첫 봉부터 시작 — 전일 프리픽스는 전부 미리 보여주고, 오늘 첫 봉까지만 표시
+    // 이후는 시작 버튼으로 1분씩 재생
+    const startIdx=todayStartIdx+1;
+    candles=allCandles.slice(0,startIdx);
+    // 전체 데이터 저장 (시작 이후 봉 추가용)
+    window._realAllCandles=allCandles;
+    window._realNextIdx=startIdx;
+    window._todayStartIdx=todayStartIdx;
 
     curStock={name:js.name||code,code:js.code,date:js.date||date,count:js.count,totalCandles:total};
     elapsed=0;  // 연습 시작 시점부터 0으로 카운팅
     resetStats();refresh();
 
-    const firstT=allCandles[0].time?allCandles[0].time.slice(11,16):'';
-    const lastT=allCandles[allCandles.length-1].time?allCandles[allCandles.length-1].time.slice(11,16):'';
+    const firstT=todayCandles[0].time?todayCandles[0].time.slice(11,16):'';
+    const lastT=todayCandles[todayCandles.length-1].time?todayCandles[todayCandles.length-1].time.slice(11,16):'';
     const dateCompact=(curStock.date||date).replace(/-/g,'');
     const missingTxt=(js.missing_minutes&&js.missing_minutes>0)?' (부분누락)':'';
     setBanner('📈 '+curStock.name+' | '+dateCompact+' | '+firstT+'~'+lastT+missingTxt,'breal');
