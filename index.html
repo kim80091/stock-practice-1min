@@ -92,7 +92,7 @@ button:active{opacity:.8;}
 <div class="row">
   <span>속도</span>
   <button id="s05">0.5초</button><button id="s1" class="b">1초</button>
-  <button id="s2">2초</button><button id="s3">3초</button>
+  <button id="s2">2초</button><button id="s3">3초</button><button id="s4">4초</button>
 </div>
 <div class="stats">
   <div class="card"><div class="lbl">평가자산</div><div class="val" id="vAsset">100,000,000원</div></div>
@@ -1221,11 +1221,11 @@ document.getElementById('btnBuyHalfM').onclick=()=>doBuy(.5);
 document.getElementById('btnSellM').onclick=()=>doSell(1);
 document.getElementById('btnSellHalfM').onclick=()=>doSell(.5);
 
-[['s05',.5],['s1',1],['s2',2],['s3',3]].forEach(([id,v])=>{
+[['s05',.5],['s1',1],['s2',2],['s3',3],['s4',4]].forEach(([id,v])=>{
   document.getElementById(id).onclick=()=>{
     intSec=v;
     localStorage.setItem('speed_sec',String(v));
-    ['s05','s1','s2','s3'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
+    ['s05','s1','s2','s3','s4'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
     if(timer){stopT();startT();}  // 재생 중이면 즉시 새 속도로 다시 시작
   };
 });
@@ -1254,9 +1254,9 @@ try{
   const savedSpeed=localStorage.getItem('speed_sec');
   if(savedSpeed){
     intSec=parseFloat(savedSpeed);
-    const idMap={'0.5':'s05','1':'s1','2':'s2','3':'s3'};
+    const idMap={'0.5':'s05','1':'s1','2':'s2','3':'s3','4':'s4'};
     const id=idMap[savedSpeed];
-    if(id)['s05','s1','s2','s3'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
+    if(id)['s05','s1','s2','s3','s4'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
   }
   const savedCapital=localStorage.getItem('capital_won');
   if(savedCapital){
