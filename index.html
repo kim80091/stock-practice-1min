@@ -100,7 +100,7 @@ button:active{opacity:.8;}
   <div class="card"><div class="lbl">평균 보유기간</div><div class="val" id="vAvgHold">-</div></div>
   <div class="card"><div class="lbl">매매 승률 (횟수)</div><div class="val" id="vWin">-</div></div>
   <div class="card"><div class="lbl">보유 경과</div><div class="val" id="vHold">-</div></div>
-  <div class="card"><div class="lbl">매매 횟수</div><div class="val" id="vTradeCount">0회</div></div>
+  <div class="card"><div class="lbl">매매횟수 | 손익비</div><div class="val" id="vTradeCount">0회</div></div>
   <div class="card"><div class="lbl">누적 손익%</div><div class="val" id="vAnnual">-</div></div>
   <div class="card"><div class="lbl">현재 손익(수수료 차감)</div><div class="val" id="vPnl">-</div></div>
 </div>
@@ -689,14 +689,14 @@ function refresh(){
   const mtData=vdata(i=>ma40Dir(i));
   MT.data.datasets[0].data=mtData;
   MT.data.datasets[0].backgroundColor=mtData.map(v=>
-    v===1?'rgba(226,75,74,0.7)':v===-1?'rgba(55,138,221,0.7)':'rgba(180,180,180,0.4)'
+    v===1?pC:v===-1?lC:'rgba(180,180,180,0.4)'
   );
 
   // MA40 현재값 레이블
   const lastDir=ma40Dir(candles.length-1);
   const trendEl=document.getElementById('vMaTrend');
-  if(lastDir===1){trendEl.textContent='▲ 상승';trendEl.style.color='#E24B4A';}
-  else if(lastDir===-1){trendEl.textContent='▼ 하락';trendEl.style.color='#378ADD';}
+  if(lastDir===1){trendEl.textContent='▲ 상승';trendEl.style.color=pC;}
+  else if(lastDir===-1){trendEl.textContent='▼ 하락';trendEl.style.color=lC;}
   else{trendEl.textContent='— 횡보';trendEl.style.color='#888';}
 
   // MA40 골든/데드크로스 차트
@@ -808,7 +808,15 @@ function updateUI(){
     anel.style.color=tPnl>0?pC:(tPnl<0?lC:'#1a1a1a');
   }else{anel.textContent='-';anel.style.color='#1a1a1a';}
   const tot=wins+losses;
-  document.getElementById('vTradeCount').textContent=tot+'회';
+  const winRecs=tradeHistory.filter(t=>t.win);
+  const lossRecs=tradeHistory.filter(t=>!t.win);
+  let plRatioTxt='-';
+  if(winRecs.length>0&&lossRecs.length>0){
+    const avgWin=winRecs.reduce((s,t)=>s+t.netPct,0)/winRecs.length;
+    const avgLoss=lossRecs.reduce((s,t)=>s+Math.abs(t.netPct),0)/lossRecs.length;
+    if(avgLoss>0)plRatioTxt=(avgWin/avgLoss).toFixed(2);
+  }
+  document.getElementById('vTradeCount').textContent=tot+'회 | '+plRatioTxt;
   const wrel=document.getElementById('vWin');
   if(tot>0){const wr=wins/tot*100;wrel.textContent=wr.toFixed(1)+'% ('+tot+'회)';wrel.style.color=wr>=50?pC:lC;}
   else{wrel.textContent='0% (0회)';wrel.style.color='#1a1a1a';}
