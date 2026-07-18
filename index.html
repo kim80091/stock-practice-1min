@@ -425,7 +425,7 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.stroke();
       ctx.setLineDash([]);
     }else if(a.t==='arrow'){
-      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=a.half?8*.65:8;
+      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=(a.half?8*.65:8)/3;
       const gap=16; // 캔들과 화살표 사이 최소 여백(고정 픽셀) — 캔들을 가리지 않도록
       ctx.lineJoin='round';
       if(a.up){
