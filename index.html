@@ -745,13 +745,13 @@ function refresh(){
   MPC.data.labels=lbls;
   const mpData=vdata(i=>maPosDiff(i));
   MPC.data.datasets[0].data=mpData;
-  MPC.data.datasets[0].backgroundColor=mpData.map(v=>v===null?'rgba(0,0,0,0)':v>=0?pC:lC);
+  MPC.data.datasets[0].backgroundColor=mpData.map(v=>v===null?'rgba(0,0,0,0)':v>0?'#F5A623':v<0?'#38B6E0':'#1a1a1a');
   const lastMaPos=maPosDiff(candles.length-1);
   const maPosEl=document.getElementById('vMaPos');
   if(lastMaPos===null){maPosEl.textContent='-';maPosEl.style.color='#555';}
-  else if(lastMaPos>0){maPosEl.textContent='위';maPosEl.style.color=pC;}
-  else if(lastMaPos<0){maPosEl.textContent='아래';maPosEl.style.color=lC;}
-  else{maPosEl.textContent='동일';maPosEl.style.color=pC;}
+  else if(lastMaPos>0){maPosEl.textContent='위';maPosEl.style.color='#F5A623';}
+  else if(lastMaPos<0){maPosEl.textContent='아래';maPosEl.style.color='#38B6E0';}
+  else{maPosEl.textContent='동일';maPosEl.style.color='#1a1a1a';}
 
   // 볼린저밴드 이격 차트 (-10~+10)
   BDC.data.labels=lbls;
