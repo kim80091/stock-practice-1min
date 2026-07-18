@@ -487,13 +487,32 @@ function mkChart(id,type,yEx){
 
 const PC=mkChart('cPrice','line');
 PC.options.scales.x.ticks={
-  display:true,autoSkip:true,maxTicksLimit:6,font:{size:9},color:'#888',
+  font:{size:9},color:'#888',
   callback:function(value){
     const pad=padOffset(),s=vs();
     const idx=s+(value-pad);
     if(idx<0||idx>=candles.length||!candles[idx]||!candles[idx].time)return'';
     return candles[idx].time.slice(11,16); // "HH:MM"
   }
+};
+PC.options.scales.x.afterBuildTicks=function(axis){
+  const s=vs(),pad=padOffset();
+  const firstXi=pad;
+  const lastXi=pad+(candles.length-1-s);
+  const maxTicks=6;
+  let positions=[];
+  if(lastXi<=firstXi){
+    positions=[lastXi];
+  }else{
+    const step=(lastXi-firstXi)/(maxTicks-1);
+    for(let i=0;i<maxTicks-1;i++)positions.push(Math.round(firstXi+i*step));
+    // 마지막(최신) 틱과 너무 가까워 겹칠 만한 앞쪽 눈금은 제거하고 마지막을 확정 포함
+    const minGap=Math.max(4,step*0.6);
+    while(positions.length&&lastXi-positions[positions.length-1]<minGap)positions.pop();
+    positions.push(lastXi);
+  }
+  positions=[...new Set(positions)].filter(v=>v>=0);
+  axis.ticks=positions.map(v=>({value:v}));
 };
 
 
