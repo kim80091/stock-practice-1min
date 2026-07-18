@@ -244,7 +244,9 @@ function maPosDiff(idx){
   const m=ma(10,idx);
   const c=closeAt(idx);
   if(m===null||c===undefined)return null;
-  return c-m;
+  if(c>m)return 1;
+  if(c<m)return -1;
+  return 0;
 }
 // 볼린저밴드 이격: 상한선 근접=+10, 하한선 근접=-10, 중심선(SMA20)=0
 function bbDeviation(idx){
@@ -564,8 +566,8 @@ const MPC=new Chart(document.getElementById('cMaPos'),{
     layout:{padding:{left:4,right:4}},
     scales:{
       x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
-      y:{position:'right',
-        ticks:{font:{size:10},padding:6,callback:v=>fp(v)},
+      y:{position:'right',min:-1.5,max:1.5,
+        ticks:{font:{size:10},padding:6,callback:v=>'',stepSize:1},
         afterFit:s=>{s.width=64;},
         grid:{color:'rgba(128,128,128,.1)'}}
     },
@@ -747,10 +749,9 @@ function refresh(){
   const lastMaPos=maPosDiff(candles.length-1);
   const maPosEl=document.getElementById('vMaPos');
   if(lastMaPos===null){maPosEl.textContent='-';maPosEl.style.color='#555';}
-  else{
-    maPosEl.textContent=(lastMaPos>=0?'+':'')+fp(lastMaPos);
-    maPosEl.style.color=lastMaPos>=0?pC:lC;
-  }
+  else if(lastMaPos>0){maPosEl.textContent='위';maPosEl.style.color=pC;}
+  else if(lastMaPos<0){maPosEl.textContent='아래';maPosEl.style.color=lC;}
+  else{maPosEl.textContent='동일';maPosEl.style.color=pC;}
 
   // 볼린저밴드 이격 차트 (-10~+10)
   BDC.data.labels=lbls;
