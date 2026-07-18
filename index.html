@@ -137,6 +137,10 @@ button:active{opacity:.8;}
   <div class="cwrap" style="height:40px;"><canvas id="cMaCross"></canvas></div>
 </div>
 <div class="cbox">
+  <div class="ddrow"><span>MA10과 캔들위치</span><span class="ddval" id="vMaPos" style="color:#555;">-</span></div>
+  <div class="cwrap" style="height:40px;"><canvas id="cMaPos"></canvas></div>
+</div>
+<div class="cbox">
   <div class="ddrow"><span>볼린저밴드 이격</span><span class="ddval" id="vBbDev" style="color:#555;">-</span></div>
   <div class="cwrap" style="height:40px;"><canvas id="cBbDev"></canvas></div>
 </div>
@@ -235,6 +239,13 @@ function bbStats(idx){
 }
 function bbUpper(idx){const b=bbStats(idx);return b?b.mid+BB_MULT*b.sd:null;}
 function bbLower(idx){const b=bbStats(idx);return b?b.mid-BB_MULT*b.sd:null;}
+// MA10과 캔들위치: 종가-MA10 차이값 (막대 높이). 종가>=MA10 이면 빨강, 종가<MA10 이면 파랑
+function maPosDiff(idx){
+  const m=ma(10,idx);
+  const c=closeAt(idx);
+  if(m===null||c===undefined)return null;
+  return c-m;
+}
 // 볼린저밴드 이격: 상한선 근접=+10, 하한선 근접=-10, 중심선(SMA20)=0
 function bbDeviation(idx){
   const b=bbStats(idx);
@@ -544,6 +555,23 @@ function fmtObv(v){
   if(Math.abs(man)<1)return Math.round(v).toLocaleString('ko-KR');
   return Math.round(man).toLocaleString('ko-KR')+'만';
 }
+// MA10과 캔들위치 차트 (종가-MA10 차이, 종가>=MA10 빨강 / 종가<MA10 파랑)
+const MPC=new Chart(document.getElementById('cMaPos'),{
+  type:'bar',
+  data:{labels:[],datasets:[{label:'MA10위치',data:[],backgroundColor:[]}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    layout:{padding:{left:4,right:4}},
+    scales:{
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      y:{position:'right',
+        ticks:{font:{size:10},padding:6,callback:v=>fp(v)},
+        afterFit:s=>{s.width=64;},
+        grid:{color:'rgba(128,128,128,.1)'}}
+    },
+    plugins:{legend:{display:false},tooltip:{enabled:false}}
+  },plugins:[]
+});
 // 볼린저밴드 이격 차트 (-10 하한선 ~ +10 상한선)
 const BDC=new Chart(document.getElementById('cBbDev'),{
   type:'line',
@@ -711,6 +739,19 @@ function refresh(){
   else if(lastObv>=lastObvSig)obvEl.style.color=pC;
   else obvEl.style.color=lC;
 
+  // MA10과 캔들위치 차트 (종가>=MA10 빨강, 종가<MA10 파랑)
+  MPC.data.labels=lbls;
+  const mpData=vdata(i=>maPosDiff(i));
+  MPC.data.datasets[0].data=mpData;
+  MPC.data.datasets[0].backgroundColor=mpData.map(v=>v===null?'rgba(0,0,0,0)':v>=0?pC:lC);
+  const lastMaPos=maPosDiff(candles.length-1);
+  const maPosEl=document.getElementById('vMaPos');
+  if(lastMaPos===null){maPosEl.textContent='-';maPosEl.style.color='#555';}
+  else{
+    maPosEl.textContent=(lastMaPos>=0?'+':'')+fp(lastMaPos);
+    maPosEl.style.color=lastMaPos>=0?pC:lC;
+  }
+
   // 볼린저밴드 이격 차트 (-10~+10)
   BDC.data.labels=lbls;
   BDC.data.datasets[0].data=vdata(i=>bbDeviation(i));
@@ -730,7 +771,7 @@ function refresh(){
   const lastValue=candles[candles.length-1].volume*candles[candles.length-1].close;
   document.getElementById('vValue').textContent=fmtEok(lastValue)+'억';
 
-  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');BDC.update('none');
+  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');BDC.update('none');MPC.update('none');
   updateUI();
 }
 
@@ -954,7 +995,13 @@ async function loadReal(code, date){
       }
     }catch(e){/* 시드 데이터 없어도 무방, 기존 방식대로 동작 */}
 
-    const allCandles=visiblePrefix.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume})).concat(todayCandles);
+    const allCandles=visiblePrefix.map(d=>{
+      // 예전 형식(종가만 저장된 데이터)이면 시가=고가=저가=종가로 대체해 단순화된 캔들로 표시
+      const hasOHLC=d.open!==undefined&&d.high!==undefined&&d.low!==undefined;
+      return hasOHLC
+        ? {time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume||0}
+        : {time:d.time,open:d.close,high:d.close,low:d.close,close:d.close,volume:d.volume||0};
+    }).concat(todayCandles);
     const todayStartIdx=visiblePrefix.length; // 오늘 첫 봉의 인덱스 — 날짜분기선 위치
 
     // 항상 오늘 첫 봉부터 시작 — 전일 프리픽스는 전부 미리 보여주고, 오늘 첫 봉까지만 표시
