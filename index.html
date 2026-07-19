@@ -664,7 +664,7 @@ function buildPA(){
   const list=[],s=vs(),pad=padOffset();
   for(let i=s;i<candles.length;i++){
     const c=candles[i],li=pad+(i-s),up=c.close>=c.open;
-    list.push({t:'box',x1:li-.35,x2:li+.35,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
+    list.push({t:'box',x1:li-.42,x2:li+.42,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
     list.push({t:'wick',xi:li,hi:c.high,lo:c.low,cl:up?uC:dC});
     if(i>=(window._todayStartIdx||0)&&volSignal(i))list.push({t:'dot',xi:li,yi:c.high});
   }
