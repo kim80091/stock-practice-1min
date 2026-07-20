@@ -646,7 +646,7 @@ PC.data.datasets=[
   {label:'MA10',data:[],borderColor:'#F5A623',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
   {label:'MA40',data:[],borderColor:'#0F6E56',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
   {label:'BB상단',data:[],borderColor:'#9C6ADE',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],hidden:!showBB},
-  {label:'BB하단',data:[],borderColor:'#9C6ADE',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],hidden:!showBB},
+  {label:'BB하단',data:[],borderColor:'#9C6ADE',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],hidden:!showBB,fill:2,backgroundColor:'rgba(156,106,222,0.07)'},
 ];
 
 // ── 뷰 계산 ──────────────────────────────────────────────────
@@ -664,7 +664,7 @@ function buildPA(){
   const list=[],s=vs(),pad=padOffset();
   for(let i=s;i<candles.length;i++){
     const c=candles[i],li=pad+(i-s),up=c.close>=c.open;
-    list.push({t:'box',x1:li-.42,x2:li+.42,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
+    list.push({t:'box',x1:li-.46,x2:li+.46,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
     list.push({t:'wick',xi:li,hi:c.high,lo:c.low,cl:up?uC:dC});
     if(i>=(window._todayStartIdx||0)&&volSignal(i))list.push({t:'dot',xi:li,yi:c.high});
   }
