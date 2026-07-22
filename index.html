@@ -158,6 +158,10 @@ button:active{opacity:.8;}
   <div class="ddrow"><span>OBV (Signal 10, 단순)</span><span class="ddval" id="vObv" style="color:#555;">-</span></div>
   <div class="cwrap" style="height:40px;"><canvas id="cObv"></canvas></div>
 </div>
+<div class="cbox">
+  <div class="ddrow"><span>OBV 추세</span><span class="ddval" id="vObvTrend" style="color:#555;">-</span></div>
+  <div class="cwrap" style="height:40px;"><canvas id="cObvTrend"></canvas></div>
+</div>
 <div class="logtitle">거래 내역</div>
 <div id="tlog"></div>
 
@@ -322,6 +326,13 @@ function obvCross(arr,idx){
   const curV=arr[idx],prevV=arr[idx-1];
   if(prevV<prev&&curV>=cur)return 1;   // 골든크로스
   if(prevV>prev&&curV<=cur)return -1;  // 데드크로스
+  return 0;
+}
+// OBV 추세: 직전 OBV 대비 상승중이면 1(빨강), 하락중이면 -1(파랑)
+function obvDir(arr,idx){
+  if(idx<=0||arr[idx]===undefined||arr[idx-1]===undefined)return 0;
+  if(arr[idx]>arr[idx-1])return 1;
+  if(arr[idx]<arr[idx-1])return -1;
   return 0;
 }
 // 당일 세션(배열 0번 인덱스=장 시작) 기준 최고거래량
@@ -615,6 +626,23 @@ function fmtObv(v){
   if(Math.abs(man)<1)return Math.round(v).toLocaleString('ko-KR');
   return Math.round(man).toLocaleString('ko-KR')+'만';
 }
+// OBV 추세 차트 (상승=빨강 막대, 하락=파랑 막대)
+const OTC=new Chart(document.getElementById('cObvTrend'),{
+  type:'bar',
+  data:{labels:[],datasets:[{label:'OBV추세',data:[],backgroundColor:[]}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    layout:{padding:{left:4,right:4}},
+    scales:{
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      y:{position:'right',min:-1.5,max:1.5,
+        ticks:{font:{size:10},padding:6,callback:v=>''},
+        afterFit:s=>{s.width=64;},
+        grid:{color:'rgba(128,128,128,.1)'}}
+    },
+    plugins:{legend:{display:false},tooltip:{enabled:false}}
+  },plugins:[]
+});
 // MA10과 캔들위치 차트 (종가-MA10 차이, 종가>=MA10 빨강 / 종가<MA10 파랑)
 const MPC=new Chart(document.getElementById('cMaPos'),{
   type:'bar',
@@ -820,6 +848,17 @@ function refresh(){
   else if(lastObv>=lastObvSig)obvEl.style.color=pC;
   else obvEl.style.color=lC;
 
+  // OBV 추세 차트 (상승=빨강, 하락=파랑)
+  OTC.data.labels=lbls;
+  const otData=vdata(i=>obvDir(obvArr,i));
+  OTC.data.datasets[0].data=otData;
+  OTC.data.datasets[0].backgroundColor=otData.map(v=>v===null?'rgba(0,0,0,0)':v===1?pC:v===-1?lC:'rgba(180,180,180,0.4)');
+  const lastObvDir=obvDir(obvArr,candles.length-1);
+  const obvTrendEl=document.getElementById('vObvTrend');
+  if(lastObvDir===1){obvTrendEl.textContent='상승';obvTrendEl.style.color=pC;}
+  else if(lastObvDir===-1){obvTrendEl.textContent='하락';obvTrendEl.style.color=lC;}
+  else{obvTrendEl.textContent='-';obvTrendEl.style.color='#555';}
+
   // MA10과 캔들위치 차트 (종가>=MA10 빨강, 종가<MA10 파랑)
   MPC.data.labels=lbls;
   const mpData=vdata(i=>maPosDiff(i));
@@ -851,7 +890,7 @@ function refresh(){
   const lastValue=candles[candles.length-1].volume*candles[candles.length-1].close;
   document.getElementById('vValue').textContent=fmtEok(lastValue)+'억';
 
-  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');BDC.update('none');MPC.update('none');
+  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');BDC.update('none');MPC.update('none');OTC.update('none');
   updateUI();
 }
 
