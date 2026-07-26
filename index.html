@@ -574,7 +574,7 @@ const MT=new Chart(document.getElementById('cMaTrend'),{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
       y:{position:'right',min:-1.5,max:1.5,
         ticks:{font:{size:10},padding:6,callback:v=>v===1?'상승':v===-1?'하락':'',stepSize:1},
         afterFit:s=>{s.width=64;},
@@ -592,7 +592,7 @@ const MC=new Chart(document.getElementById('cMaCross'),{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
       y:{position:'right',min:-1.5,max:1.5,
         ticks:{font:{size:10},padding:6,callback:v=>v===1?'골든':v===-1?'데드':'',stepSize:1},
         afterFit:s=>{s.width=64;},
@@ -612,7 +612,7 @@ const OC=new Chart(document.getElementById('cObv'),{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
       y:{position:'right',
         ticks:{font:{size:10},padding:6,callback:v=>fmtObv(v)},
         afterFit:s=>{s.width=64;},
@@ -634,7 +634,7 @@ const OTC=new Chart(document.getElementById('cObvTrend'),{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
       y:{position:'right',min:-1.5,max:1.5,
         ticks:{font:{size:10},padding:6,callback:v=>''},
         afterFit:s=>{s.width=64;},
@@ -651,7 +651,7 @@ const MPC=new Chart(document.getElementById('cMaPos'),{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
       y:{position:'right',min:-1.5,max:1.5,
         ticks:{font:{size:10},padding:6,callback:v=>'',stepSize:1},
         afterFit:s=>{s.width=64;},
@@ -670,7 +670,7 @@ const BDC=new Chart(document.getElementById('cBbDev'),{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
       y:{position:'right',min:-12,max:12,
         ticks:{font:{size:10},padding:6,stepSize:10},
         afterFit:s=>{s.width=64;},
@@ -692,7 +692,7 @@ const VLC=new Chart(document.getElementById('cValue'),{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
       y:{position:'right',beginAtZero:true,
         ticks:{font:{size:10},padding:6,callback:v=>fmtEok(v)},
         afterFit:s=>{s.width=64;},
@@ -769,7 +769,7 @@ function buildPA(){
 // ── 차트 갱신 ────────────────────────────────────────────────
 function refresh(){
   if(!candles.length)return;
-  const s=vs(),lbls=mkLbl();
+  const s=vs(),lbls=mkLblPC();
   PC.data.labels=mkLblPC();
   PC.data.datasets[0].data=vdata(i=>ma(10,i));
   PC.data.datasets[1].data=vdata(i=>ma(40,i));
