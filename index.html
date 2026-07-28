@@ -385,6 +385,22 @@ function ma40Dir(idx){
   return 0;
 }
 
+// 매수신호: MA40 추세방향 상승 + 종가>MA40 + 종가>MA10, 3가지 동시 충족
+function buySignalCond(idx){
+  const dir=ma40Dir(idx);
+  if(dir!==1)return false;
+  const m40=ma(40,idx),m10=ma(10,idx),c=closeAt(idx);
+  if(m40===null||m10===null||c===undefined)return false;
+  return c>m40&&c>m10;
+}
+// 신호가 뜬 캔들 포함, 그 후 3개 캔들까지 계속 표시
+function buySignalRecentActive(idx){
+  for(let j=idx-3;j<=idx;j++){
+    if(j>=0&&buySignalCond(j))return true;
+  }
+  return false;
+}
+
 // MA40 크로스 신호
 // CrossUp(C,M): 직전 종가 < MA40 이고 현재 종가 >= MA40 → 골든크로스 1 (주황)
 // CrossDown(C,M): 직전 종가 > MA40 이고 현재 종가 <= MA40 → 데드크로스 -1 (에메랄드)
@@ -493,6 +509,22 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.moveTo(px,chartArea.top);ctx.lineTo(px,chartArea.bottom);
       ctx.stroke();
       ctx.setLineDash([]);
+    }else if(a.t==='label'){
+      // 데이터 좌표가 아니라 차트 영역 기준 고정 위치(코너)에 작은 배지로 표시
+      ctx.font='11px -apple-system,BlinkMacSystemFont,sans-serif';
+      const padX=6,padY=3,boxH=17;
+      const textW=ctx.measureText(a.text).width;
+      const boxW=textW+padX*2;
+      let bx,by;
+      if(a.corner==='bl'){bx=chartArea.left+4;by=chartArea.bottom-boxH-4;}
+      else{bx=chartArea.left+4;by=chartArea.top+4;} // 기본: 좌상단
+      ctx.fillStyle=a.bg||'rgba(217,48,37,0.9)';
+      ctx.beginPath();
+      ctx.roundRect?ctx.roundRect(bx,by,boxW,boxH,3):ctx.rect(bx,by,boxW,boxH);
+      ctx.fill();
+      ctx.fillStyle=a.color||'#fff';
+      ctx.textBaseline='middle';
+      ctx.fillText(a.text,bx+padX,by+boxH/2+1);
     }else if(a.t==='arrow'){
       const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=(a.half?8*.65:8)/3;
       const gap=16; // 캔들과 화살표 사이 최소 여백(고정 픽셀) — 캔들을 가리지 않도록
@@ -806,6 +838,10 @@ function buildPA(){
   if(showIchi){
     const lastLi=pad+(candles.length-1-s);
     list.push({t:'vline',xi:lastLi+ICHI_SHIFT,cl:'rgba(0,0,0,.6)',dash:[6,3]});
+  }
+  // 매수신호: MA40 추세방향 상승 + 종가>MA40 + 종가>MA10, 신호 캔들 포함 3개 캔들 동안 표시
+  if(candles.length>0&&buySignalRecentActive(candles.length-1)){
+    list.push({t:'label',text:'매수신호',corner:'bl',bg:'rgba(217,48,37,0.9)',color:'#fff'});
   }
   return list;
 }
@@ -1491,17 +1527,6 @@ try{
     if(id)['c1','c5','c10'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
   }
 }catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값 유지 */}
-
-// ── 디버그용 (콘솔에서 window.__debug 로 확인, 나중에 제거 예정) ──
-window.__debug = {
-  get histLen(){return histCandles.length;},
-  get curStock(){return curStock;},
-  get todayStartIdx(){return window._todayStartIdx;},
-  get senkouA(){return PC.data.datasets[4].data;},
-  get senkouB(){return PC.data.datasets[5].data;},
-  get firstNonNullA(){return PC.data.datasets[4].data.findIndex(v=>v!==null);},
-  get firstNonNullB(){return PC.data.datasets[5].data.findIndex(v=>v!==null);},
-};
 
 // ── 시작 ─────────────────────────────────────────────────────
 loadStockList();
