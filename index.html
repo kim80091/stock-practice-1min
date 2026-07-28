@@ -155,7 +155,7 @@ button:active{opacity:.8;}
   <div class="cwrap" style="height:40px;"><canvas id="cMaPos"></canvas></div>
 </div>
 <div class="cbox">
-  <div class="ddrow"><span>MA5과 캔들위치</span><span class="ddval" id="vMa5Pos" style="color:#555;">-</span></div>
+  <div class="ddrow"><span>MA5와 캔들위치</span><span class="ddval" id="vMa5Pos" style="color:#555;">-</span></div>
   <div class="cwrap" style="height:40px;"><canvas id="cMa5Pos"></canvas></div>
 </div>
 <div class="cbox">
@@ -280,7 +280,7 @@ function maPosDiff(idx){
   if(c<m)return -1;
   return 0;
 }
-// MA5과 캔들위치: 종가-MA5 차이값. 종가>=MA5 이면 위, 종가<MA5 이면 아래
+// MA5와 캔들위치: 종가-MA5 차이값. 종가>=MA5 이면 위, 종가<MA5 이면 아래
 function ma5PosDiff(idx){
   const m=ma(5,idx);
   const c=closeAt(idx);
@@ -713,7 +713,7 @@ const MPC=new Chart(document.getElementById('cMaPos'),{
     plugins:{legend:{display:false},tooltip:{enabled:false}}
   },plugins:[]
 });
-// MA5과 캔들위치 차트 (MA10과 캔들위치와 동일한 색상 체계)
+// MA5와 캔들위치 차트 (MA10과 캔들위치와 동일한 색상 체계)
 const MPC5=new Chart(document.getElementById('cMa5Pos'),{
   type:'bar',
   data:{labels:[],datasets:[{label:'MA5위치',data:[],backgroundColor:[]}]},
@@ -956,7 +956,7 @@ function refresh(){
   else if(lastMaPos<0){maPosEl.textContent='아래';maPosEl.style.color='#38B6E0';}
   else{maPosEl.textContent='동일';maPosEl.style.color='#1a1a1a';}
 
-  // MA5과 캔들위치 차트 (MA10과 캔들위치와 동일한 색상)
+  // MA5와 캔들위치 차트 (MA10과 캔들위치와 동일한 색상)
   MPC5.data.labels=lbls;
   const mp5Data=vdata(i=>ma5PosDiff(i));
   MPC5.data.datasets[0].data=mp5Data;
