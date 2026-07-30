@@ -977,6 +977,10 @@ function buildPA(){
   if(candles.length>0&&buySignalRecentActive(candles.length-1)){
     list.push({t:'label',text:'매수신호',corner:'bl',bg:'rgba(217,48,37,0.9)',color:'#fff'});
   }
+  // 데이터누락: 오늘 또는 전일(시드 출처) 데이터가 20:00 마감까지 온전히 안 채워졌으면 좌상단에 표시
+  if(window._dataIncomplete){
+    list.push({t:'label',text:'데이터누락',bg:'rgba(217,119,6,0.9)',color:'#fff'});
+  }
   return list;
 }
 // ── 차트 갱신 ────────────────────────────────────────────────
@@ -1389,6 +1393,7 @@ async function loadReal(code, date){
     // 그 이전 분(최대 TAIL_LEN분까지)은 화면엔 안 보이되 MA10/MA40/볼린저밴드 계산에만 사용
     let visiblePrefix=[];
     histCandles=[];
+    let prevDayIncomplete=false;
     try{
       const tres=await fetch(WORKER+'/tail1m?code='+code+'&date='+date);
       const tjs=await tres.json();
@@ -1397,6 +1402,9 @@ async function loadReal(code, date){
         const visCount=Math.min(TAIL_VISIBLE,tail.length);
         visiblePrefix=tail.slice(tail.length-visCount);
         histCandles=tail.slice(0,tail.length-visCount);
+        // 전일(시드 출처일) 마지막 봉이 20:00 마감까지 못 미쳤으면 전일 데이터도 불완전한 것
+        const lastTailTime=tail[tail.length-1].time;
+        if(lastTailTime&&lastTailTime.slice(11,16)<'20:00')prevDayIncomplete=true;
       }
     }catch(e){/* 시드 데이터 없어도 무방, 기존 방식대로 동작 */}
 
@@ -1417,6 +1425,10 @@ async function loadReal(code, date){
     window._realAllCandles=allCandles;
     window._realNextIdx=startIdx;
     window._todayStartIdx=todayStartIdx;
+
+    // 데이터누락 배지: 오늘 자체 누락(missing_minutes) 또는 전일(시드 출처) 20:00 마감 미도달 중 하나라도 있으면 표시
+    const todayIncomplete=!!(js.missing_minutes&&js.missing_minutes>0);
+    window._dataIncomplete=todayIncomplete||prevDayIncomplete;
 
     curStock={name:js.name||code,code:js.code,date:js.date||date,count:js.count,totalCandles:total};
     elapsed=0;  // 연습 시작 시점부터 0으로 카운팅
