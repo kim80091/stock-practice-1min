@@ -3,24 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1분봉 실전차트 매매 연습</title>
+<title>SK하이닉스 1분봉 매매 연습</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#fff;color:#1a1a1a;padding:10px;font-size:13px;}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
 button{font-family:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid #ccc;background:#fafafa;color:#333;cursor:pointer;transition:transform .08s ease,filter .08s ease,box-shadow .08s ease;}
 button:active{transform:scale(.94);filter:brightness(.9);box-shadow:inset 0 1px 3px rgba(0,0,0,.2);}
-button:active{opacity:.8;}
 .g{border-color:#0F6E56;color:#0F6E56;}
 .r{border-color:#993556;color:#993556;}
 .b{border-color:#378ADD;color:#378ADD;font-weight:600;}
-.mrand{font-weight:700;background:#EEF5FF;border-color:#378ADD;color:#378ADD;}
-.mreal{font-weight:700;background:#F0FFF4;border-color:#0F6E56;color:#0F6E56;}
-.minact{background:#fafafa;border-color:#ccc;color:#555;font-weight:700;}
-.prl{margin-left:auto;font-size:15px;font-weight:700;}
 .dayl{font-weight:600;font-size:13px;}
 .banner{padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;margin-bottom:6px;}
-.brand{background:#EEF5FF;color:#378ADD;}
 .breal{background:#EDFAF3;color:#0F6E56;}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px;}
 .card{background:#f5f5f5;border-radius:8px;padding:8px 10px;}
@@ -28,13 +22,15 @@ button:active{opacity:.8;}
 .card .val{font-size:15px;font-weight:700;}
 .cbox{border:1px solid #eaeaea;border-radius:8px;background:#fff;margin-bottom:3px;overflow:hidden;}
 .cwrap{position:relative;}
-.cwrap.pc{height:300px;}.cwrap.vc{height:90px;}.cwrap.dc{height:70px;}
+.cwrap.pc{height:300px;}
 .cwrap canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
 .ddrow{display:flex;justify-content:space-between;padding:2px 8px 0;font-size:11px;color:#888;}
-.ddval{font-size:13px;font-weight:700;color:#D85A30;}
+.ddval{font-size:13px;font-weight:700;color:#555;}
 #stockRow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px;}
-#stockSel{font-family:inherit;font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid #ccc;max-width:280px;width:100%;}
+#daySel{font-family:inherit;font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid #ccc;max-width:280px;width:100%;}
 #stockBtnRow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+.lgrow{display:flex;gap:10px;align-items:center;flex-wrap:nowrap;margin-bottom:4px;}
+.lg{font-size:12px;font-weight:700;white-space:nowrap;}
 .logtitle{font-size:12px;color:#888;margin-top:6px;margin-bottom:3px;}
 #tlog{font-size:12px;max-height:100px;overflow-y:auto;border:1px solid #eaeaea;border-radius:8px;padding:5px 9px;}
 #overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px;}
@@ -58,12 +54,12 @@ button:active{opacity:.8;}
   .stats{grid-template-columns:repeat(2,1fr);gap:5px;margin-bottom:5px;}
   .card{padding:4px 8px;}
   .card .lbl{margin-bottom:0px;}
-  .cwrap.pc{height:260px;}.cwrap.vc{height:75px;}.cwrap.dc{height:55px;}
+  .cwrap.pc{height:260px;}
   .hideMob{display:none;}
   .tradebar{display:none;}
   .mbuy{display:flex;gap:8px;margin:8px 0;}
   .mbuy button{flex:1;padding:clamp(4px,1.8vw,8px) clamp(6px,3vw,14px);font-size:clamp(12px,3.6vw,16px);font-weight:700;}
-  #stockSel{max-width:100%;font-size:12px;padding:5px 6px;}
+  #daySel{max-width:100%;font-size:12px;padding:5px 6px;}
   #stockBtnRow button{padding:5px 10px;font-size:12px;}
 }
 .pgtitle{font-size:16px;font-weight:700;margin-bottom:10px;color:#1a1a1a;}
@@ -73,16 +69,14 @@ button:active{opacity:.8;}
 
 <div id="overlay"><div class="spin"></div><div id="ovmsg">로딩 중...</div></div>
 
-<div class="pgtitle">1분봉 실전차트 매매 연습</div>
-<div id="stockRow" class="show">
-  <select id="stockSel"><option>종목 로딩 중...</option></select>
-</div>
-<div id="stockBtnRow" class="show">
+<div class="pgtitle">SK하이닉스 1분봉 매매 연습</div>
+<div id="stockRow"><select id="daySel"><option>날짜 로딩 중...</option></select></div>
+<div id="stockBtnRow">
   <button id="btnLoad" style="font-weight:700">로드</button>
   <button id="btnReset" title="새로고침">↺</button>
-  <button id="btnRandStock">랜덤</button>
+  <button id="btnRandDay">랜덤</button>
 </div>
-<div class="banner breal" id="banner">📈 실제 종목 매매연습 — 08:00 장 시작부터 재생</div>
+<div class="banner breal" id="banner">📈 SK하이닉스 — 날짜를 불러오는 중...</div>
 
 <div class="row">
   <span>원금</span>
@@ -105,35 +99,12 @@ button:active{opacity:.8;}
   <div class="card"><div class="lbl">현재 손익(수수료 차감)</div><div class="val" id="vPnl">-</div></div>
 </div>
 
-<div class="row" style="margin-bottom:4px;">
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:#9C6ADE;font-weight:600;">
-    <input type="checkbox" id="bbToggle" style="width:15px;height:15px;cursor:pointer;">
-    볼밴(20,2)
-  </label>
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:#E24B4A;font-weight:600;margin-left:6px;">
-    <input type="checkbox" id="ma5Toggle" style="width:15px;height:15px;cursor:pointer;">
-    MA5
-  </label>
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:#0F6E56;font-weight:600;margin-left:6px;">
-    <input type="checkbox" id="ma30Toggle" style="width:15px;height:15px;cursor:pointer;" checked>
-    MA30
-  </label>
+<div class="lgrow">
+  <span class="lg" style="color:#F5A623;">MA5</span>
+  <span class="lg" style="color:#0F6E56;">MA30</span>
+  <span class="lg" style="color:#B388FF;">볼밴(20,2)</span>
   <span class="dayl" id="vLastChg" style="margin-left:auto;color:#1a1a1a;">-</span>
-</div>
-<div class="row" style="margin-bottom:4px;">
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:#4A90D9;font-weight:600;">
-    <input type="checkbox" id="ichiToggle" style="width:15px;height:15px;cursor:pointer;">
-    일목(9,26,52)
-  </label>
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:#F5A623;font-weight:600;margin-left:6px;">
-    <input type="checkbox" id="ma10Toggle" style="width:15px;height:15px;cursor:pointer;" checked>
-    MA10
-  </label>
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:#0F6E56;font-weight:600;margin-left:6px;">
-    <input type="checkbox" id="ma40Toggle" style="width:15px;height:15px;cursor:pointer;" checked>
-    MA40
-  </label>
-  <span class="dayl" id="dayLabel" style="margin-left:auto;">경과: 0분째</span>
+  <span class="dayl" id="dayLabel" style="margin-left:8px;">경과: 0분째</span>
 </div>
 <div class="cbox"><div class="cwrap pc"><canvas id="cPrice"></canvas></div></div>
 <div class="tradebar">
@@ -151,52 +122,12 @@ button:active{opacity:.8;}
   <button id="btnToggleTM">▶</button>
 </div>
 <div class="cbox">
-  <div class="ddrow"><span>매수신호</span><span class="ddval" id="vBuySig" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cBuySig"></canvas></div>
+  <div class="ddrow"><span>겹침매수신호</span><span class="ddval" id="vOvBuy">-</span></div>
+  <div class="cwrap" style="height:40px;"><canvas id="cOvBuy"></canvas></div>
 </div>
 <div class="cbox">
-  <div class="ddrow"><span>매도신호</span><span class="ddval" id="vSellSig" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cSellSig"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>MA30 추세</span><span class="ddval" id="vMa30Trend" style="color:#378ADD;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cMa30Trend"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>볼린저밴드 터치</span><span class="ddval" id="vBbTouch" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cBbTouch"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>거래대금</span><span class="ddval" id="vValue" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cValue"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>MA40 추세 방향</span><span class="ddval" id="vMaTrend" style="color:#378ADD;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cMaTrend"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>MA40 골드,데드 크로스</span><span class="ddval" id="vMaCross" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cMaCross"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>MA10과 캔들위치</span><span class="ddval" id="vMaPos" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cMaPos"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>MA5와 캔들위치</span><span class="ddval" id="vMa5Pos" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cMa5Pos"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>볼린저밴드 이격</span><span class="ddval" id="vBbDev" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cBbDev"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>OBV (Signal 10, 단순)</span><span class="ddval" id="vObv" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cObv"></canvas></div>
-</div>
-<div class="cbox">
-  <div class="ddrow"><span>OBV 추세</span><span class="ddval" id="vObvTrend" style="color:#555;">-</span></div>
-  <div class="cwrap" style="height:40px;"><canvas id="cObvTrend"></canvas></div>
+  <div class="ddrow"><span>박스 구간</span><span class="ddval" id="vBox">-</span></div>
+  <div class="cwrap" style="height:40px;"><canvas id="cBox"></canvas></div>
 </div>
 <div class="logtitle">거래 내역</div>
 <div id="tlog"></div>
@@ -223,15 +154,26 @@ button:active{opacity:.8;}
 (function(){
 'use strict';
 
-const WORKER='https://candle-practice-1min.kim80091.workers.dev'; // TODO: 실제 배포 후 주소 확인/교체
+const WORKER='https://candle-practice-1min.kim80091.workers.dev';
 const FEE=.0023, VP=8, VIS=60; // 키움증권 실수수료: 매수 0.015% + 매도 0.215% = 왕복 0.230%
-let stockList=[], curStock=null;
-let shuffleBag=[]; // "다른 종목" 뽑을 때 다 한 번씩 나올 때까지 중복 안 되게 뽑는 통
+const TAIL_VISIBLE=20;  // 전일 마지막 몇 분을 실제 캔들로 화면에 보여줄지
+const SEED_LEN=60;      // 전일 마지막 몇 분을 가져올지 (표시 20 + 계산 전용 40)
+const FULL_DAY=720;     // 08:01~20:00 = 720분 (이보다 적으면 누락)
+const BAND=0.13;        // 가격차트 하단에 신호 막대 3개를 그리는 영역 비율
 
-// 통이 비면 전체 인덱스를 다시 채우고 섞음(Fisher-Yates), 하나 뽑아서 반환
+let days=[];            // [{date,count,first,last}] 오래된 순
+let curDate=null;
+let shuffleBag=[];
+let candles=[], timer=null, pos=null, tPnl=0, trades=[];
+let intSec=1, elapsed=0, capital=100000000;
+let wins=0, losses=0, holdSum=0;
+let tradeHistory=[], aiCount=0, lastTradeRecord=null;
+let histCandles=[];     // 전일 시드 중 화면에 안 보이는 부분(계산 전용)
+
+// 통이 비면 전체 날짜를 다시 채우고 섞음(Fisher-Yates), 하나 뽑아서 반환 → 모든 날짜가 한 번씩 나온 뒤 반복
 function drawFromBag(){
   if(!shuffleBag.length){
-    shuffleBag=stockList.map((_,i)=>i);
+    shuffleBag=days.map((_,i)=>i);
     for(let i=shuffleBag.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [shuffleBag[i],shuffleBag[j]]=[shuffleBag[j],shuffleBag[i]];
@@ -239,34 +181,15 @@ function drawFromBag(){
   }
   return shuffleBag.pop();
 }
-let candles=[], timer=null, pos=null, tPnl=0, trades=[];
-let intSec=1, elapsed=0, capital=100000000;
-let wins=0, losses=0, holdSum=0;
-let tradeHistory=[], aiCount=0, lastTradeRecord=null;
 
 // ── 지표 ─────────────────────────────────────────────────────
-const TAIL_VISIBLE=20; // 전일 마지막 몇 분을 실제 캔들로 화면에 보여줄지
-let histCandles=[]; // 전일 시드 중 화면에 안 보이는 부분(계산 전용, TAIL_VISIBLE보다 이전 구간)
-
-// idx>=0: 오늘 candles 배열, idx<0: 전일 시드(histCandles)에서 역산해서 가져옴
+// idx>=0: candles 배열, idx<0: 전일 시드(histCandles)에서 역산해서 가져옴
 function closeAt(idx){
-  if(idx>=0){
-    return candles[idx]?candles[idx].close:undefined;
-  }
-  const hIdx=histCandles.length+idx; // idx=-1 → 마지막 시드 종가
+  if(idx>=0)return candles[idx]?candles[idx].close:undefined;
+  const hIdx=histCandles.length+idx;
   return hIdx>=0?histCandles[hIdx].close:undefined;
 }
-function highAt(idx){
-  if(idx>=0)return candles[idx]?candles[idx].high:undefined;
-  const hIdx=histCandles.length+idx;
-  return hIdx>=0?histCandles[hIdx].high:undefined;
-}
-function lowAt(idx){
-  if(idx>=0)return candles[idx]?candles[idx].low:undefined;
-  const hIdx=histCandles.length+idx;
-  return hIdx>=0?histCandles[hIdx].low:undefined;
-}
-
+// 단순이동평균 (idx 시점 기준). MA(C,p,단순,k) = ma(p, idx-k)
 function ma(p,idx){
   let s=0;
   for(let i=idx-p+1;i<=idx;i++){
@@ -276,7 +199,7 @@ function ma(p,idx){
   }
   return s/p;
 }
-// 볼린저밴드 (기간 20, 표준편차 배수 2) — 상단/하단만 사용, 중심선(SMA20)은 화면에 표시 안 함
+// 볼린저밴드 (기간 20, 표준편차 배수 2)
 const BB_PERIOD=20, BB_MULT=2;
 function bbStats(idx){
   let sum=0;
@@ -295,193 +218,48 @@ function bbStats(idx){
 }
 function bbUpper(idx){const b=bbStats(idx);return b?b.mid+BB_MULT*b.sd:null;}
 function bbLower(idx){const b=bbStats(idx);return b?b.mid-BB_MULT*b.sd:null;}
-// MA10과 캔들위치: 종가-MA10 차이값 (막대 높이). 종가>=MA10 이면 빨강, 종가<MA10 이면 파랑
-function maPosDiff(idx){
-  const m=ma(10,idx);
-  const c=closeAt(idx);
-  if(m===null||c===undefined)return null;
-  if(c>m)return 1;
-  if(c<m)return -1;
-  return 0;
-}
-// MA5와 캔들위치: 종가-MA5 차이값. 종가>=MA5 이면 위, 종가<MA5 이면 아래
-function ma5PosDiff(idx){
-  const m=ma(5,idx);
-  const c=closeAt(idx);
-  if(m===null||c===undefined)return null;
-  if(c>m)return 1;
-  if(c<m)return -1;
-  return 0;
-}
-// 볼린저밴드 이격: 상한선 근접=+10, 하한선 근접=-10, 중심선(SMA20)=0
-function bbDeviation(idx){
-  const b=bbStats(idx);
-  if(!b)return null;
-  const upper=b.mid+BB_MULT*b.sd,lower=b.mid-BB_MULT*b.sd,range=upper-lower;
-  if(range<=0)return 0;
-  const price=closeAt(idx);
-  if(price===undefined)return null;
-  const pctB=(price-lower)/range; // 0=하한선, 0.5=중심선, 1=상한선 (밴드 밖이면 범위 벗어난 값도 가능)
-  return (pctB-0.5)*20;
-}
 
-// 일목균형표 (전환선9, 기준선26, 선행스팬52) — 선행스팬1/2만 화면에 표시
-// ※ 지금은 밀림(26봉 선행 표시) 없이 각 봉 자기 위치에 표시하는 단순화 버전
-const ICHI_SHORT=9, ICHI_MID=26, ICHI_LONG=52;
-function periodHL(period,idx){
-  let hi=-Infinity,lo=Infinity;
-  for(let i=idx-period+1;i<=idx;i++){
-    const h=highAt(i),l=lowAt(i);
-    if(h===undefined||l===undefined)return null;
-    if(h>hi)hi=h;
-    if(l<lo)lo=l;
-  }
-  return {hi,lo};
+// MA5 저점반전: M1<M2 and M0>M1 and C>M0   (M0=MA5, M1=1봉전 MA5, M2=2봉전 MA5)
+function sigMA5Rev(idx){
+  const m0=ma(5,idx),m1=ma(5,idx-1),m2=ma(5,idx-2),c=closeAt(idx);
+  if(m0===null||m1===null||m2===null||c===undefined)return 0;
+  return(m1<m2&&m0>m1&&c>m0)?1:0;
 }
-function ichiTenkan(idx){const r=periodHL(ICHI_SHORT,idx);return r?(r.hi+r.lo)/2:null;}
-function ichiKijun(idx){const r=periodHL(ICHI_MID,idx);return r?(r.hi+r.lo)/2:null;}
-function ichiSenkouB(idx){const r=periodHL(ICHI_LONG,idx);return r?(r.hi+r.lo)/2:null;}
-function ichiSenkouA(idx){
-  const t=ichiTenkan(idx),k=ichiKijun(idx);
-  return(t!==null&&k!==null)?(t+k)/2:null;
-}
-
-// OBV (On Balance Volume) — 당일 세션(0번 인덱스=장 시작) 기준 누적
-function obvSeries(){
-  const arr=[];
-  let val=0;
-  for(let i=0;i<candles.length;i++){
-    if(i===0){val=candles[i].volume;}
-    else if(candles[i].close>candles[i-1].close){val+=candles[i].volume;}
-    else if(candles[i].close<candles[i-1].close){val-=candles[i].volume;}
-    arr.push(val);
-  }
-  return arr;
-}
-// OBV Signal — 단순이동평균(SMA), 기간 10
-function obvSignalMA(arr,idx,p){
-  if(idx+1<p)return null;
-  let s=0;for(let i=idx-p+1;i<=idx;i++)s+=arr[i];
-  return s/p;
-}
-// OBV가 Signal(10)을 상향/하향 돌파하는 지점 (골든/데드크로스)
-function obvCross(arr,idx){
-  const cur=obvSignalMA(arr,idx,10),prev=obvSignalMA(arr,idx-1,10);
-  if(cur===null||prev===null)return 0;
-  const curV=arr[idx],prevV=arr[idx-1];
-  if(prevV<prev&&curV>=cur)return 1;   // 골든크로스
-  if(prevV>prev&&curV<=cur)return -1;  // 데드크로스
-  return 0;
-}
-// OBV 추세: 직전 OBV 대비 상승중이면 1(빨강), 하락중이면 -1(파랑)
-function obvDir(arr,idx){
-  if(idx<=0||arr[idx]===undefined||arr[idx-1]===undefined)return 0;
-  if(arr[idx]>arr[idx-1])return 1;
-  if(arr[idx]<arr[idx-1])return -1;
-  return 0;
-}
-// 당일 세션(배열 0번 인덱스=장 시작) 기준 최고거래량
-function hvol(idx){
-  const start=window._todayStartIdx||0;
-  let h=0;
-  for(let i=start;i<=idx;i++)if(candles[i]&&candles[i].volume>h)h=candles[i].volume;
-  return h;
-}
-// 최고거래량90%,20억 신호
-// HighestVolume = 당일 장 시작 이후 최고 거래량
-// Ratio = (V / HighestVolume) * 100, Value = V * C
-// Ratio > 90 and Value >= 20억 일 때만 신호
-function volSignal(idx){
-  const hv=hvol(idx);
-  if(!hv)return false;
-  const ratio=candles[idx].volume/hv*100;
-  const value=candles[idx].volume*candles[idx].close;
-  return(ratio>90&&value>=2000000000);
-}
-
-// MA40 방향: 현재 MA40 > 직전 MA40 → 1(상승), < → -1(하락), = → 0(횡보)
-function maDir(period,idx){
-  const cur=ma(period,idx);
-  const prev=ma(period,idx-1);
-  if(cur===null||prev===null)return 0;
-  if(cur>prev)return 1;
-  if(cur<prev)return -1;
-  return 0;
-}
-function ma40Dir(idx){return maDir(40,idx);}
-
-// 매수신호: MA40 추세방향 상승 + 종가>MA40 + 종가>MA10, 3가지 동시 충족
-function buySignalCond(idx){
-  const dir=ma40Dir(idx);
-  if(dir!==1)return false;
-  const m40=ma(40,idx),m10=ma(10,idx),c=closeAt(idx);
-  if(m40===null||m10===null||c===undefined)return false;
-  return c>m40&&c>m10;
-}
-// 신호가 뜬 캔들 포함, 그 후 3개 캔들까지 계속 표시
-function buySignalRecentActive(idx){
-  for(let j=idx-3;j<=idx;j++){
-    if(j>=0&&buySignalCond(j))return true;
-  }
-  return false;
-}
-
-// 범용 크로스업/크로스다운 (기간 지정 가능한 MA 기준)
-function crossUpMA(idx,period){
-  const curC=closeAt(idx),prevC=closeAt(idx-1);
-  const curM=ma(period,idx),prevM=ma(period,idx-1);
-  if(curC===undefined||prevC===undefined||curM===null||prevM===null)return false;
-  return prevC<prevM&&curC>=curM;
-}
-function crossDownMA(idx,period){
-  const curC=closeAt(idx),prevC=closeAt(idx-1);
-  const curM=ma(period,idx),prevM=ma(period,idx-1);
-  if(curC===undefined||prevC===undefined||curM===null||prevM===null)return false;
-  return prevC>prevM&&curC<=curM;
-}
-
-// [보조지표] 매수신호(막대): T0=MA30, T1=전봉 MA30, M10=MA10
-// T0<T1 (MA30 하락 전환) AND C>T0 AND C>M10 → 1, 아니면 0
-function buySigBarValue(idx){
+// MA30 추세반전: T0<T1 and C>T0 and C>M10   (T0=MA30, T1=1봉전 MA30, M10=MA10)
+function sigMA30Rev(idx){
   const t0=ma(30,idx),t1=ma(30,idx-1),m10=ma(10,idx),c=closeAt(idx);
   if(t0===null||t1===null||m10===null||c===undefined)return 0;
   return(t0<t1&&c>t0&&c>m10)?1:0;
 }
-// [보조지표] 매도신호(막대): M=MA5; CrossUp(C,M)→0.0, CrossDown(C,M)→0.75, 그 외 0
-function sellSigBarValue(idx){
-  if(crossUpMA(idx,5))return 0;
-  if(crossDownMA(idx,5))return 0.75;
-  return 0;
+// MA30 추세(+만): MA30 > 1봉전 MA30
+function sigMA30Up(idx){
+  const t0=ma(30,idx),t1=ma(30,idx-1);
+  if(t0===null||t1===null)return 0;
+  return t0>t1?1:0;
 }
-// [보조지표] 볼린저밴드 터치: H>=상단 → 1, L<=하단 → -1, 그 외 0
-function bbTouch(idx){
-  const u=bbUpper(idx),lo=bbLower(idx);
-  const h=highAt(idx),l=lowAt(idx);
-  if(u===null||lo===null||h===undefined||l===undefined)return 0;
-  if(h>=u)return 1;
-  if(l<=lo)return -1;
-  return 0;
+// 겹침매수신호: SIG2 and (SIG1 or SIG3)
+//   SIG2 = MA5 저점반전, SIG1 = MA30 추세반전, SIG3 = MA30 상승 and C>=MA30
+function sigOverlapBuy(idx){
+  if(!sigMA5Rev(idx))return 0;
+  if(sigMA30Rev(idx))return 1;
+  const t0=ma(30,idx),t1=ma(30,idx-1),c=closeAt(idx);
+  if(t0===null||t1===null||c===undefined)return 0;
+  return(t0>t1&&c>=t0)?1:0;
 }
-
-// MA40 크로스 신호
-// CrossUp(C,M): 직전 종가 < MA40 이고 현재 종가 >= MA40 → 골든크로스 1 (주황)
-// CrossDown(C,M): 직전 종가 > MA40 이고 현재 종가 <= MA40 → 데드크로스 -1 (에메랄드)
-function ma40Cross(idx){
-  const curC=closeAt(idx),prevC=closeAt(idx-1);
-  if(curC===undefined||prevC===undefined)return 0;
-  const curM=ma(40,idx);
-  const prevM=ma(40,idx-1);
-  if(!curM||!prevM)return 0;
-  if(prevC<prevM&&curC>=curM)return 1;   // CrossUp → 골든크로스
-  if(prevC>prevM&&curC<=curM)return -1;  // CrossDown → 데드크로스
-  return 0;
+// 박스 구간: S=(MA20-5봉전 MA20)/5봉전 MA20*100, ANGLE=ATAN(S)*180/π, -10<ANGLE<10 이면 1
+function boxZone(idx){
+  const t0=ma(20,idx),t1=ma(20,idx-5);
+  if(t0===null||t1===null||t1===0)return 0;
+  const s=(t0-t1)/t1*100;
+  const angle=Math.atan(s)*180/3.141592;
+  return(angle<10&&angle>-10)?1:0;
 }
 
-// ── 스냅샷 (풍부한 지표) ────────────────────────────────────
+// ── 스냅샷 (AI 분석용) ──────────────────────────────────────
 function snapshot(idx){
   if(idx<0||idx>=candles.length)return null;
   const c=candles[idx];
-  const m5=ma(5,idx),m20=ma(10,idx),m80=ma(40,idx);
+  const m5=ma(5,idx),m30=ma(30,idx);
 
   let upStreak=0,downStreak=0;
   for(let i=idx-1;i>=Math.max(0,idx-5);i--){
@@ -501,9 +279,8 @@ function snapshot(idx){
   else if(lowerWick/range>0.5)candleShape='아랫꼬리 긴 봉(망치형)';
   else if(body/range<0.2)candleShape='도지(십자봉)';
 
-  const gapMa20=m20?((c.close-m20)/m20*100).toFixed(1):null;
-  const gapMa80=m80?((c.close-m80)/m80*100).toFixed(1):null;
-  const maConverging=m5&&m20&&m80?Math.abs(m5-m80)/m80*100<3:false;
+  const gapMa5=m5?((c.close-m5)/m5*100).toFixed(2):null;
+  const gapMa30=m30?((c.close-m30)/m30*100).toFixed(2):null;
 
   let prev20High=-Infinity;
   for(let i=Math.max(0,idx-20);i<idx;i++)if(candles[i].high>prev20High)prev20High=candles[i].high;
@@ -512,27 +289,29 @@ function snapshot(idx){
   let avgVol=0,volCount=0;
   for(let i=Math.max(0,idx-20);i<idx;i++){avgVol+=candles[i].volume;volCount++;}
   avgVol=volCount>0?avgVol/volCount:c.volume;
-  const volRatio=(c.volume/avgVol*100).toFixed(0);
+  const volRatio=avgVol>0?(c.volume/avgVol*100).toFixed(0):'0';
 
   return{
-    price:c.close,ma5:m5,ma20:m20,ma80:m80,
-    gapMa20,gapMa80,maConverging,
-    volSignal:volSignal(idx),volRatio,
-    isUp:c.close>=c.open,candleShape,
-    upStreak,downStreak,breakout
+    price:c.close,ma5:m5,ma30:m30,gapMa5,gapMa30,
+    overlapBuy:sigOverlapBuy(idx)===1,box:boxZone(idx)===1,
+    ma5Rev:sigMA5Rev(idx)===1,ma30Rev:sigMA30Rev(idx)===1,
+    volRatio,isUp:c.close>=c.open,candleShape,upStreak,downStreak,breakout
   };
 }
 function maStatus(s){
-  if(!s||!s.ma5||!s.ma20||!s.ma80)return'데이터 부족';
-  if(s.ma5>s.ma20&&s.ma20>s.ma80)return'정배열(상승)';
-  if(s.ma5<s.ma20&&s.ma20<s.ma80)return'역배열(하락)';
-  return'혼조';
+  if(!s||!s.ma5||!s.ma30)return'데이터 부족';
+  return s.ma5>s.ma30?'MA5>MA30 (단기 우위)':'MA5<MA30 (단기 열위)';
 }
 
 // ── 차트 플러그인 ─────────────────────────────────────────────
-const uC='#E24B4A',dC='#378ADD',uV='rgba(226,75,74,.5)',dV='rgba(55,138,221,.5)';
+const uC='#E24B4A',dC='#378ADD';
 const bC='#0F6E56',sC='#993556';
 const pC='#D93025',lC='#2F6FD3'; // 손익 표시 전용: 수익=빨강, 손실=파랑
+const C_OVBUY='#FF4FA3';   // 겹침매수신호 (핑크)
+const C_BOX='#378ADD';     // 박스 구간 (파랑)
+const C_MA5REV='#FFD400';  // MA5 저점반전 (노랑)
+const C_MA30REV='#39FF14'; // MA30 추세반전 (형광초록)
+const C_MA30UP='#E53935';  // MA30 추세(+만) (빨강)
 
 Chart.register({id:'ann',afterDraw(chart){
   const o=chart.options.plugins&&chart.options.plugins.ann;
@@ -552,44 +331,43 @@ Chart.register({id:'ann',afterDraw(chart){
       ctx.moveTo(x.getPixelForValue(a.xi),y.getPixelForValue(a.hi));
       ctx.lineTo(x.getPixelForValue(a.xi),y.getPixelForValue(a.lo));
       ctx.stroke();
-    }else if(a.t==='dot'){
-      ctx.fillStyle='#BA7517';ctx.strokeStyle='#633806';ctx.lineWidth=1;
-      const dpx=x.getPixelForValue(a.xi),dpy=y.getPixelForValue(a.yi)-10;
-      ctx.beginPath();
-      ctx.arc(dpx,dpy,4,0,Math.PI*2);
-      ctx.fill();ctx.stroke();
-    }else if(a.t==='hline'){
-      ctx.strokeStyle=a.cl;ctx.lineWidth=1;
-      ctx.beginPath();
-      ctx.moveTo(x.getPixelForValue(a.x1),y.getPixelForValue(a.yv));
-      ctx.lineTo(x.getPixelForValue(a.x2),y.getPixelForValue(a.yv));
-      ctx.stroke();
+    }else if(a.t==='sigbar'){
+      // 가격차트 하단 영역에 그리는 신호 막대 (값 1.5 / 0.9 / 0.3 이 높이에 비례)
+      const px=x.getPixelForValue(a.xi);
+      const halfW=Math.max(1,(x.getPixelForValue(a.xi+0.35)-x.getPixelForValue(a.xi-0.35))/2);
+      const bandPx=(chartArea.bottom-chartArea.top)*BAND;
+      const h=a.v*(bandPx/1.6);
+      ctx.fillStyle=a.cl;
+      ctx.fillRect(px-halfW,chartArea.bottom-h,halfW*2,h);
+    }else if(a.t==='circ'){
+      // MA30 추세반전 신호: 캔들 위 형광초록 동그라미
+      const cx=x.getPixelForValue(a.xi),cy=y.getPixelForValue(a.yi)-11;
+      ctx.beginPath();ctx.arc(cx,cy,4.5,0,Math.PI*2);
+      ctx.fillStyle=C_MA30REV;ctx.fill();
+      ctx.lineWidth=1;ctx.strokeStyle='#1E9E00';ctx.stroke();
     }else if(a.t==='vline'){
-      ctx.strokeStyle=a.cl||'rgba(120,120,120,.55)';ctx.lineWidth=1;ctx.setLineDash(a.dash||[4,3]);
+      ctx.strokeStyle=a.cl||'rgba(120,120,120,.55)';ctx.lineWidth=a.w||1;ctx.setLineDash(a.dash||[4,3]);
       const px=x.getPixelForValue(a.xi);
       ctx.beginPath();
       ctx.moveTo(px,chartArea.top);ctx.lineTo(px,chartArea.bottom);
       ctx.stroke();
       ctx.setLineDash([]);
     }else if(a.t==='label'){
-      // 데이터 좌표가 아니라 차트 영역 기준 고정 위치(코너)에 작은 배지로 표시
+      // 데이터 좌표가 아니라 차트 영역 좌상단에 고정되는 작은 배지
       ctx.font='11px -apple-system,BlinkMacSystemFont,sans-serif';
-      const padX=6,padY=3,boxH=17;
+      const padX=6,boxH=17;
       const textW=ctx.measureText(a.text).width;
-      const boxW=textW+padX*2;
-      let bx,by;
-      if(a.corner==='bl'){bx=chartArea.left+4;by=chartArea.bottom-boxH-4;}
-      else{bx=chartArea.left+4;by=chartArea.top+4;} // 기본: 좌상단
-      ctx.fillStyle=a.bg||'rgba(217,48,37,0.9)';
+      const bx=chartArea.left+4,by=chartArea.top+4;
+      ctx.fillStyle=a.bg||'rgba(217,119,6,0.9)';
       ctx.beginPath();
-      ctx.roundRect?ctx.roundRect(bx,by,boxW,boxH,3):ctx.rect(bx,by,boxW,boxH);
+      if(ctx.roundRect)ctx.roundRect(bx,by,textW+padX*2,boxH,3);else ctx.rect(bx,by,textW+padX*2,boxH);
       ctx.fill();
       ctx.fillStyle=a.color||'#fff';
       ctx.textBaseline='middle';
       ctx.fillText(a.text,bx+padX,by+boxH/2+1);
     }else if(a.t==='arrow'){
       const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi),sz=(a.half?8*.65:8)/3;
-      const gap=16; // 캔들과 화살표 사이 최소 여백(고정 픽셀) — 캔들을 가리지 않도록
+      const gap=16; // 캔들과 화살표 사이 최소 여백(고정 픽셀)
       ctx.lineJoin='round';
       if(a.up){
         const tipY=py+gap,by=tipY+sz*1.8;
@@ -610,327 +388,89 @@ Chart.register({id:'ann',afterDraw(chart){
         ctx.beginPath();ctx.moveTo(px,by);ctx.lineTo(px,by-sz);ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();
         ctx.lineWidth=1.5;ctx.strokeStyle=a.cl;ctx.stroke();
       }
-    }else if(a.t==='tinyarrow'){
-      // 작은 보조지표 패널용 소형 화살표 (골든/데드크로스 표시 등) — 선에서 살짝 떨어진 위치에 표시
-      const px=x.getPixelForValue(a.xi),py=y.getPixelForValue(a.yi);
-      const gap=5,shaftLen=5,headLen=3,headW=3;
-      ctx.strokeStyle=a.cl;ctx.lineWidth=1.6;ctx.lineCap='round';ctx.lineJoin='round';
-      if(a.up){
-        // 선 아래쪽에서 위쪽(선 방향)을 향하는 화살표
-        const tipY=py+gap,tailY=tipY+shaftLen;
-        ctx.beginPath();ctx.moveTo(px,tailY);ctx.lineTo(px,tipY);ctx.stroke();
-        ctx.beginPath();ctx.moveTo(px-headW,tipY+headLen);ctx.lineTo(px,tipY);ctx.lineTo(px+headW,tipY+headLen);ctx.stroke();
-      }else{
-        // 선 위쪽에서 아래쪽(선 방향)을 향하는 화살표
-        const tipY=py-gap,tailY=tipY-shaftLen;
-        ctx.beginPath();ctx.moveTo(px,tailY);ctx.lineTo(px,tipY);ctx.stroke();
-        ctx.beginPath();ctx.moveTo(px-headW,tipY-headLen);ctx.lineTo(px,tipY);ctx.lineTo(px+headW,tipY-headLen);ctx.stroke();
-      }
     }
   }
   ctx.restore();
 }});
 
 // ── 차트 생성 ────────────────────────────────────────────────
-function mkChart(id,type,yEx){
-  return new Chart(document.getElementById(id),{
-    type,data:{labels:[],datasets:[]},
-    options:{
-      responsive:true,maintainAspectRatio:false,animation:false,
-      layout:{padding:{left:4,right:4}},
-      interaction:{intersect:false},
-      scales:{
-        x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
-        y:{position:'right',ticks:{font:{size:11},padding:6,callback:v=>Math.round(v).toLocaleString('ko-KR')},afterFit:s=>{s.width=64;},grid:{color:'rgba(128,128,128,.1)'},...(yEx||{})}
-      },
-      plugins:{legend:{display:false},tooltip:{enabled:false},ann:{list:[]}}
-    },plugins:[]
-  });
-}
-
-const ICHI_SHIFT=26; // 선행스팬 선행 표시(26봉 앞)를 위해 가격차트 오른쪽에 확보하는 여유 공간
-const PC=mkChart('cPrice','line');
-PC.options.scales.x.max=VIS+VP-1+ICHI_SHIFT;
-PC.options.scales.x.ticks={
-  font:{size:9},color:'#888',
-  callback:function(value){
-    const pad=padOffset(),s=vs();
-    const idx=s+(value-pad);
-    if(idx<0||idx>=candles.length||!candles[idx]||!candles[idx].time)return'';
-    return candles[idx].time.slice(11,16); // "HH:MM"
-  }
-};
-PC.options.scales.x.afterBuildTicks=function(axis){
-  const s=vs(),pad=padOffset();
-  const firstXi=pad;
-  const lastXi=pad+(candles.length-1-s);
-  const maxTicks=6;
-  let positions=[];
-  if(lastXi<=firstXi){
-    positions=[lastXi];
-  }else{
-    const step=(lastXi-firstXi)/(maxTicks-1);
-    for(let i=0;i<maxTicks-1;i++)positions.push(Math.round(firstXi+i*step));
-    // 마지막(최신) 틱과 너무 가까워 겹칠 만한 앞쪽 눈금은 제거하고 마지막을 확정 포함
-    const minGap=Math.max(4,step*0.6);
-    while(positions.length&&lastXi-positions[positions.length-1]<minGap)positions.pop();
-    positions.push(lastXi);
-  }
-  positions=[...new Set(positions)].filter(v=>v>=0);
-  axis.ticks=positions.map(v=>({value:v}));
-};
-
-
-// MA40 추세 방향 차트 (막대: 1=상승/빨강, -1=하락/파랑, 0=횡보/회색)
-// 매수신호 차트 (T0=MA30<T1=전봉MA30 AND C>T0 AND C>M10 → 1, 아니면 0) — 연두색 막대
-const BUYSIG=new Chart(document.getElementById('cBuySig'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'매수신호',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-.3,max:1.3,
-        ticks:{font:{size:10},padding:6,callback:v=>''},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-// 매도신호 차트 (M=MA5, CrossDown(C,M)→0.75, CrossUp(C,M)→0, 그외 0) — 음봉과 동일한 파란색
-const SELLSIG=new Chart(document.getElementById('cSellSig'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'매도신호',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-.3,max:1.3,
-        ticks:{font:{size:10},padding:6,callback:v=>''},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-// MA30 추세 차트 (MA40 추세 방향과 동일한 방식, 기간만 30)
-const MT30=new Chart(document.getElementById('cMa30Trend'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'MA30방향',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-1.5,max:1.5,
-        ticks:{font:{size:10},padding:6,callback:v=>v===1?'상승':v===-1?'하락':'',stepSize:1},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-// 볼린저밴드 터치 차트 (상단터치 +1 / 하단터치 -1 / 그외 0) — BB상단선과 동일한 보라색
-const BBTOUCH=new Chart(document.getElementById('cBbTouch'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'BB터치',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-1.5,max:1.5,
-        ticks:{font:{size:10},padding:6,callback:v=>v===1?'상단':v===-1?'하단':'',stepSize:1},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-
-const MT=new Chart(document.getElementById('cMaTrend'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'MA40방향',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-1.5,max:1.5,
-        ticks:{font:{size:10},padding:6,callback:v=>v===1?'상승':v===-1?'하락':'',stepSize:1},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-
-// MA40 골든/데드크로스 차트 (주황: 골든, 에메랄드: 데드)
-const MC=new Chart(document.getElementById('cMaCross'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'MA40크로스',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-1.5,max:1.5,
-        ticks:{font:{size:10},padding:6,callback:v=>v===1?'골든':v===-1?'데드':'',stepSize:1},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-// OBV (On Balance Volume) + Signal(10, 단순) 차트
-const OC=new Chart(document.getElementById('cObv'),{
+// 가격차트: MA5(주황) + MA30(초록) + 볼린저밴드 상/하한(밝은 보라, 사이 연한 채움)
+const PC=new Chart(document.getElementById('cPrice'),{
   type:'line',
   data:{labels:[],datasets:[
-    {label:'OBV',data:[],borderColor:'#E8821E',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
-    {label:'Signal(10)',data:[],borderColor:'#1a1a1a',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true,borderDash:[5,3]},
+    {label:'MA5',data:[],borderColor:'#F5A623',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+    {label:'MA30',data:[],borderColor:'#0F6E56',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
+    {label:'BB상단',data:[],borderColor:'#B388FF',borderWidth:1.2,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3]},
+    {label:'BB하단',data:[],borderColor:'#B388FF',borderWidth:1.2,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],fill:2,backgroundColor:'rgba(179,136,255,0.10)'},
   ]},
   options:{
     responsive:true,maintainAspectRatio:false,animation:false,
     layout:{padding:{left:4,right:4}},
+    interaction:{intersect:false},
     scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',
-        ticks:{font:{size:10},padding:6,callback:v=>fmtObv(v)},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
+      x:{
+        min:0,max:VIS+VP-1,grid:{display:false},
+        ticks:{
+          font:{size:9},color:'#888',
+          callback:function(value){
+            const pad=padOffset(),s=vs();
+            const idx=s+(value-pad);
+            if(idx<0||idx>=candles.length||!candles[idx]||!candles[idx].time)return'';
+            return candles[idx].time.slice(11,16); // "HH:MM"
+          }
+        },
+        afterBuildTicks:function(axis){
+          const s=vs(),pad=padOffset();
+          const firstXi=pad;
+          const lastXi=pad+(candles.length-1-s);
+          const maxTicks=6;
+          let positions=[];
+          if(lastXi<=firstXi){
+            positions=[lastXi];
+          }else{
+            const step=(lastXi-firstXi)/(maxTicks-1);
+            for(let i=0;i<maxTicks-1;i++)positions.push(Math.round(firstXi+i*step));
+            // 마지막(최신) 눈금과 너무 가까워 겹칠 앞쪽 눈금은 빼고, 최신 시각은 항상 표시
+            const minGap=Math.max(4,step*0.6);
+            while(positions.length&&lastXi-positions[positions.length-1]<minGap)positions.pop();
+            positions.push(lastXi);
+          }
+          positions=[...new Set(positions)].filter(v=>v>=0);
+          axis.ticks=positions.map(v=>({value:v}));
+        }
+      },
+      y:{position:'right',ticks:{font:{size:11},padding:6,callback:v=>Math.round(v).toLocaleString('ko-KR')},afterFit:s=>{s.width=64;},grid:{color:'rgba(128,128,128,.1)'}}
     },
     plugins:{legend:{display:false},tooltip:{enabled:false},ann:{list:[]}}
   },plugins:[]
 });
-function fmtObv(v){
-  const man=v/10000;
-  if(Math.abs(man)<1)return Math.round(v).toLocaleString('ko-KR');
-  return Math.round(man).toLocaleString('ko-KR')+'만';
+
+// 보조지표 막대 패널 (값 1 / 0)
+function mkBarPanel(id){
+  return new Chart(document.getElementById(id),{
+    type:'bar',
+    data:{labels:[],datasets:[{label:id,data:[],backgroundColor:[],barPercentage:.9,categoryPercentage:.9}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:false,
+      layout:{padding:{left:4,right:4}},
+      scales:{
+        x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1},
+        y:{position:'right',min:-.3,max:1.3,
+          ticks:{font:{size:10},padding:6,callback:v=>''},
+          afterFit:s=>{s.width=64;},
+          grid:{color:'rgba(128,128,128,.1)'}}
+      },
+      plugins:{legend:{display:false},tooltip:{enabled:false}}
+    },plugins:[]
+  });
 }
-// OBV 추세 차트 (상승=빨강 막대, 하락=파랑 막대)
-const OTC=new Chart(document.getElementById('cObvTrend'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'OBV추세',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-1.5,max:1.5,
-        ticks:{font:{size:10},padding:6,callback:v=>''},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-// MA10과 캔들위치 차트 (종가-MA10 차이, 종가>=MA10 빨강 / 종가<MA10 파랑)
-const MPC=new Chart(document.getElementById('cMaPos'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'MA10위치',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-1.5,max:1.5,
-        ticks:{font:{size:10},padding:6,callback:v=>'',stepSize:1},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-// MA5와 캔들위치 차트 (MA10과 캔들위치와 동일한 색상 체계)
-const MPC5=new Chart(document.getElementById('cMa5Pos'),{
-  type:'bar',
-  data:{labels:[],datasets:[{label:'MA5위치',data:[],backgroundColor:[]}]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-1.5,max:1.5,
-        ticks:{font:{size:10},padding:6,callback:v=>'',stepSize:1},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-// 볼린저밴드 이격 차트 (-10 하한선 ~ +10 상한선)
-const BDC=new Chart(document.getElementById('cBbDev'),{
-  type:'line',
-  data:{labels:[],datasets:[
-    {label:'BB이격',data:[],borderColor:'#9C6ADE',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true},
-  ]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',min:-12,max:12,
-        ticks:{font:{size:10},padding:6,stepSize:10},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-
-// 거래대금 차트 (억원 단위, 주황 막대그래프)
-const VLC=new Chart(document.getElementById('cValue'),{
-  type:'bar',
-  data:{labels:[],datasets:[{
-    label:'거래대금',data:[],
-    backgroundColor:'#F2A93B',borderWidth:0,
-    barPercentage:.7,categoryPercentage:.9,
-  }]},
-  options:{
-    responsive:true,maintainAspectRatio:false,animation:false,
-    layout:{padding:{left:4,right:4}},
-    scales:{
-      x:{ticks:{display:false},grid:{display:false},min:0,max:VIS+VP-1+ICHI_SHIFT},
-      y:{position:'right',beginAtZero:true,
-        ticks:{font:{size:10},padding:6,callback:v=>fmtEok(v)},
-        afterFit:s=>{s.width=64;},
-        grid:{color:'rgba(128,128,128,.1)'}}
-    },
-    plugins:{legend:{display:false},tooltip:{enabled:false}}
-  },plugins:[]
-});
-function fmtEok(v){
-  const eok=v/100000000;
-  if(eok<1)return eok.toFixed(1);
-  return Math.round(eok).toLocaleString('ko-KR');
-}
-
-let showBB=false; // 볼린저밴드 표시 여부 (토글)
-let showIchi=false; // 일목균형표 표시 여부 (토글)
-let showMA5=false; // MA5 표시 여부 (토글)
-let showMA10=true; // MA10 표시 여부 (토글, 기본 켜짐)
-let showMA30=true; // MA30 표시 여부 (토글, 기본 켜짐)
-let showMA40=true; // MA40 표시 여부 (토글, 기본 켜짐)
-
-PC.data.datasets=[
-  {label:'MA5',data:[],borderColor:'#E24B4A',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true,hidden:!showMA5},
-  {label:'MA10',data:[],borderColor:'#F5A623',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true,hidden:!showMA10},
-  {label:'MA30',data:[],borderColor:'#0F6E56',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true,hidden:!showMA30},
-  {label:'MA40',data:[],borderColor:'#0F6E56',borderWidth:1.3,pointRadius:0,tension:.1,spanGaps:true,hidden:!showMA40},
-  {label:'BB상단',data:[],borderColor:'#9C6ADE',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],hidden:!showBB},
-  {label:'BB하단',data:[],borderColor:'#9C6ADE',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,borderDash:[4,3],hidden:!showBB,fill:4,backgroundColor:'rgba(156,106,222,0.07)'},
-  {label:'선행스팬1',data:[],borderColor:'#E8975C',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,hidden:!showIchi},
-  {label:'선행스팬2',data:[],borderColor:'#4A90D9',borderWidth:1,pointRadius:0,tension:.1,spanGaps:true,hidden:!showIchi,fill:6,backgroundColor:'rgba(74,144,217,0.07)'},
-];
+const OVB=mkBarPanel('cOvBuy');
+const BXC=mkBarPanel('cBox');
 
 // ── 뷰 계산 ──────────────────────────────────────────────────
 function vs(){return Math.max(0,candles.length-VIS);}
 function padOffset(){return Math.max(0,VIS-(candles.length-vs()));}
 function mkLbl(){return Array.from({length:VIS+VP},(_,i)=>i);}
-function mkLblPC(){return Array.from({length:VIS+VP+ICHI_SHIFT},(_,i)=>i);}
 function vdata(fn){
   const s=vs(),a=[];
   for(let i=s;i<candles.length;i++)a.push(fn(i));
@@ -938,241 +478,81 @@ function vdata(fn){
   for(let i=0;i<VP;i++)a.push(null);
   return a;
 }
-// 선행스팬처럼 "이 봉에서 계산한 값을 shift칸 오른쪽(미래)에 표시"할 때 사용
-function vdataShift(fn,shift){
-  const s=vs(),pad=padOffset(),totalLen=VIS+VP+ICHI_SHIFT;
-  const arr=new Array(totalLen).fill(null);
-  // 화면에 보이는 첫 캔들(i=s)부터만 계산하면 왼쪽 shift칸이 비게 되므로,
-  // shift칸만큼 더 앞(전일 tail 데이터 영역까지)부터 계산해서 화면 왼쪽 끝까지 이어지게 함
-  for(let i=s-shift;i<candles.length;i++){
-    const pos=pad+(i-s)+shift;
-    if(pos>=0&&pos<totalLen)arr[pos]=fn(i);
-  }
-  return arr;
-}
 function buildPA(){
   const list=[],s=vs(),pad=padOffset();
   for(let i=s;i<candles.length;i++){
     const c=candles[i],li=pad+(i-s),up=c.close>=c.open;
     list.push({t:'box',x1:li-.35,x2:li+.35,y1:Math.min(c.open,c.close),y2:Math.max(c.open,c.close),bg:up?uC:dC});
     list.push({t:'wick',xi:li,hi:c.high,lo:c.low,cl:up?uC:dC});
-    if(i>=(window._todayStartIdx||0)&&volSignal(i))list.push({t:'dot',xi:li,yi:c.high});
+    // 차트 하단 신호 막대 3개 (키 큰 것부터 그려서 작은 것이 앞에 보이도록)
+    if(sigMA5Rev(i))list.push({t:'sigbar',xi:li,v:1.5,cl:C_MA5REV});
+    const rev30=sigMA30Rev(i);
+    if(rev30)list.push({t:'sigbar',xi:li,v:0.9,cl:C_MA30REV});
+    if(sigMA30Up(i))list.push({t:'sigbar',xi:li,v:0.3,cl:C_MA30UP});
+    // MA30 추세반전 신호가 나온 캔들 위에 형광초록 동그라미
+    if(rev30)list.push({t:'circ',xi:li,yi:c.high});
   }
   trades.forEach(t=>{
     if(t.i<s||t.i>=candles.length)return;
     const c=candles[t.i],li=pad+(t.i-s);
     list.push({t:'arrow',xi:li,yi:t.buy?c.low:c.high,cl:t.buy?bC:sC,up:t.buy,half:t.half});
   });
-  // 날짜 분기선 (전일 프리픽스 ↔ 오늘 첫 봉 경계)
-  if(window._todayStartIdx!==undefined&&window._todayStartIdx>=s&&window._todayStartIdx<candles.length){
-    const li=pad+(window._todayStartIdx-s);
-    list.push({t:'vline',xi:li-.5});
+  // 날짜 분기선 (전일 ↔ 당일 첫 봉 경계)
+  const ts=window._todayStartIdx;
+  if(ts>0&&ts>=s&&ts<candles.length){
+    list.push({t:'vline',xi:pad+(ts-s)-.5});
   }
-  // 일목균형표: 현재(최신) 캔들의 선행스팬이 표시되는 위치 — 여기까지가 실제 데이터로 계산된 구간
-  if(showIchi){
-    const lastLi=pad+(candles.length-1-s);
-    list.push({t:'vline',xi:lastLi+ICHI_SHIFT,cl:'rgba(0,0,0,.6)',dash:[6,3]});
-  }
-  // 매수신호: MA40 추세방향 상승 + 종가>MA40 + 종가>MA10, 신호 캔들 포함 3개 캔들 동안 표시
-  if(candles.length>0&&buySignalRecentActive(candles.length-1)){
-    list.push({t:'label',text:'매수신호',corner:'bl',bg:'rgba(217,48,37,0.9)',color:'#fff'});
-  }
-  // 데이터누락: 오늘 또는 전일(시드 출처) 데이터가 20:00 마감까지 온전히 안 채워졌으면 좌상단에 표시
+  // 데이터누락: 당일 또는 전일 데이터가 20:00 마감까지 온전하지 않으면 좌상단에 작게 표시
   if(window._dataIncomplete){
-    list.push({t:'label',text:'데이터누락',bg:'rgba(217,119,6,0.9)',color:'#fff'});
+    list.push({t:'label',text:'데이터누락'});
   }
   return list;
 }
+
 // ── 차트 갱신 ────────────────────────────────────────────────
 function refresh(){
   if(!candles.length)return;
-  const s=vs(),lbls=mkLblPC();
-  PC.data.labels=mkLblPC();
-  PC.data.datasets[1].data=vdata(i=>ma(10,i));
+  const s=vs(),lbls=mkLbl();
+  PC.data.labels=lbls;
   PC.data.datasets[0].data=vdata(i=>ma(5,i));
-  PC.data.datasets[2].data=vdata(i=>ma(30,i));
-  PC.data.datasets[3].data=vdata(i=>ma(40,i));
-  PC.data.datasets[4].data=vdata(i=>bbUpper(i));
-  PC.data.datasets[5].data=vdata(i=>bbLower(i));
-  PC.data.datasets[6].data=vdataShift(i=>ichiSenkouA(i),ICHI_SHIFT);
-  PC.data.datasets[7].data=vdataShift(i=>ichiSenkouB(i),ICHI_SHIFT);
+  PC.data.datasets[1].data=vdata(i=>ma(30,i));
+  PC.data.datasets[2].data=vdata(i=>bbUpper(i));
+  PC.data.datasets[3].data=vdata(i=>bbLower(i));
   PC.options.plugins.ann.list=buildPA();
+
   let mn=Infinity,mx=-Infinity;
   for(let i=s;i<candles.length;i++){
     if(candles[i].low<mn)mn=candles[i].low;
     if(candles[i].high>mx)mx=candles[i].high;
-    if(showBB){
-      const bu=bbUpper(i),bl=bbLower(i);
-      if(bu!==null&&bu>mx)mx=bu;
-      if(bl!==null&&bl<mn)mn=bl;
-    }
-    if(showIchi){
-      const sa=ichiSenkouA(i),sb=ichiSenkouB(i);
-      if(sa!==null){if(sa>mx)mx=sa;if(sa<mn)mn=sa;}
-      if(sb!==null){if(sb>mx)mx=sb;if(sb<mn)mn=sb;}
-    }
+    const bu=bbUpper(i),bl=bbLower(i);
+    if(bu!==null&&bu>mx)mx=bu;
+    if(bl!==null&&bl<mn)mn=bl;
   }
   const pd=(mx-mn)*.08;
-  PC.options.scales.y.min=mn-pd;PC.options.scales.y.max=mx+pd;
+  let lo=mn-pd;const hi=mx+pd;
+  // 하단 BAND 비율만큼은 가격이 닿지 않도록 비워서, 거기에 신호 막대 3개를 그림
+  lo=lo-(hi-lo)*BAND/(1-BAND);
+  PC.options.scales.y.min=lo;PC.options.scales.y.max=hi;
 
-  // 매수신호 차트 (연두색)
-  const BUYSIG_COLOR='#7CFC00';
-  BUYSIG.data.labels=lbls;
-  const buyData=vdata(i=>buySigBarValue(i));
-  BUYSIG.data.datasets[0].data=buyData;
-  BUYSIG.data.datasets[0].backgroundColor=buyData.map(v=>(v===null||v===0)?'rgba(0,0,0,0)':BUYSIG_COLOR);
-  const lastBuySig=buySigBarValue(candles.length-1);
-  const buySigEl=document.getElementById('vBuySig');
-  if(lastBuySig>0){buySigEl.textContent='신호';buySigEl.style.color=BUYSIG_COLOR;}
-  else{buySigEl.textContent='-';buySigEl.style.color='#555';}
+  // 겹침매수신호 패널 (핑크)
+  OVB.data.labels=lbls;
+  const ovData=vdata(i=>sigOverlapBuy(i));
+  OVB.data.datasets[0].data=ovData;
+  OVB.data.datasets[0].backgroundColor=ovData.map(v=>v===1?C_OVBUY:'rgba(0,0,0,0)');
+  const ovEl=document.getElementById('vOvBuy');
+  if(sigOverlapBuy(candles.length-1)===1){ovEl.textContent='신호';ovEl.style.color=C_OVBUY;}
+  else{ovEl.textContent='-';ovEl.style.color='#555';}
 
-  // 매도신호 차트 (음봉과 동일한 파란색)
-  SELLSIG.data.labels=lbls;
-  const sellData=vdata(i=>sellSigBarValue(i));
-  SELLSIG.data.datasets[0].data=sellData;
-  SELLSIG.data.datasets[0].backgroundColor=sellData.map(v=>(v===null||v===0)?'rgba(0,0,0,0)':dC);
-  const lastSellSig=sellSigBarValue(candles.length-1);
-  const sellSigEl=document.getElementById('vSellSig');
-  if(lastSellSig>0){sellSigEl.textContent='신호';sellSigEl.style.color=dC;}
-  else{sellSigEl.textContent='-';sellSigEl.style.color='#555';}
+  // 박스 구간 패널 (파랑)
+  BXC.data.labels=lbls;
+  const bxData=vdata(i=>boxZone(i));
+  BXC.data.datasets[0].data=bxData;
+  BXC.data.datasets[0].backgroundColor=bxData.map(v=>v===1?C_BOX:'rgba(0,0,0,0)');
+  const bxEl=document.getElementById('vBox');
+  if(boxZone(candles.length-1)===1){bxEl.textContent='박스';bxEl.style.color=C_BOX;}
+  else{bxEl.textContent='-';bxEl.style.color='#555';}
 
-  // MA30 추세 차트
-  MT30.data.labels=lbls;
-  const mt30Data=vdata(i=>maDir(30,i));
-  MT30.data.datasets[0].data=mt30Data;
-  MT30.data.datasets[0].backgroundColor=mt30Data.map(v=>
-    v===1?pC:v===-1?lC:'rgba(180,180,180,0.4)'
-  );
-  const lastDir30=maDir(30,candles.length-1);
-  const trend30El=document.getElementById('vMa30Trend');
-  if(lastDir30===1){trend30El.textContent='▲ 상승';trend30El.style.color=pC;}
-  else if(lastDir30===-1){trend30El.textContent='▼ 하락';trend30El.style.color=lC;}
-  else{trend30El.textContent='— 횡보';trend30El.style.color='#888';}
-
-  // 볼린저밴드 터치 차트 (BB상단선과 동일한 보라색)
-  const BB_TOUCH_COLOR='#9C6ADE';
-  BBTOUCH.data.labels=lbls;
-  const bbtData=vdata(i=>bbTouch(i));
-  BBTOUCH.data.datasets[0].data=bbtData;
-  BBTOUCH.data.datasets[0].backgroundColor=bbtData.map(v=>v===0?'rgba(0,0,0,0)':BB_TOUCH_COLOR);
-  const lastBbTouch=bbTouch(candles.length-1);
-  const bbTouchEl=document.getElementById('vBbTouch');
-  if(lastBbTouch===1){bbTouchEl.textContent='상단터치';bbTouchEl.style.color=BB_TOUCH_COLOR;}
-  else if(lastBbTouch===-1){bbTouchEl.textContent='하단터치';bbTouchEl.style.color=BB_TOUCH_COLOR;}
-  else{bbTouchEl.textContent='-';bbTouchEl.style.color='#555';}
-
-  // MA40 추세 방향 차트
-  MT.data.labels=lbls;
-  const mtData=vdata(i=>ma40Dir(i));
-  MT.data.datasets[0].data=mtData;
-  MT.data.datasets[0].backgroundColor=mtData.map(v=>
-    v===1?pC:v===-1?lC:'rgba(180,180,180,0.4)'
-  );
-
-  // MA40 현재값 레이블
-  const lastDir=ma40Dir(candles.length-1);
-  const trendEl=document.getElementById('vMaTrend');
-  if(lastDir===1){trendEl.textContent='▲ 상승';trendEl.style.color=pC;}
-  else if(lastDir===-1){trendEl.textContent='▼ 하락';trendEl.style.color=lC;}
-  else{trendEl.textContent='— 횡보';trendEl.style.color='#888';}
-
-  // MA40 골든/데드크로스 차트
-  MC.data.labels=lbls;
-  const mcData=vdata(i=>ma40Cross(i));
-  MC.data.datasets[0].data=mcData;
-  MC.data.datasets[0].backgroundColor=mcData.map(v=>
-    v===1?'rgba(245,166,35,0.9)':v===-1?'rgba(46,205,167,0.9)':'rgba(0,0,0,0)'
-  );
-
-  // MA40 크로스 현재값 레이블
-  const lastCross=ma40Cross(candles.length-1);
-  const crossEl=document.getElementById('vMaCross');
-  if(lastCross===1){crossEl.textContent='▲ 골든크로스';crossEl.style.color='#F5A623';}
-  else if(lastCross===-1){crossEl.textContent='▼ 데드크로스';crossEl.style.color='#2ECDA7';}
-  else{crossEl.textContent='-';crossEl.style.color='#555';}
-
-  // OBV (On Balance Volume) + Signal(10, 단순이동평균) 차트
-  const obvArr=obvSeries();
-  OC.data.labels=lbls;
-  OC.data.datasets[0].data=vdata(i=>obvArr[i]);
-  OC.data.datasets[1].data=vdata(i=>obvSignalMA(obvArr,i,10));
-
-  // OBV 골든/데드크로스 지점에 작은 화살표 표시
-  const obvPad=padOffset();
-  const obvArrows=[];
-  for(let i=s;i<candles.length;i++){
-    const cr=obvCross(obvArr,i);
-    if(cr!==0){
-      obvArrows.push({t:'tinyarrow',xi:obvPad+(i-s),yi:obvArr[i],
-        cl:cr===1?'#D93025':'#2F6FD3',up:cr===1});
-    }
-  }
-  OC.options.plugins.ann.list=obvArrows;
-
-  // OBV 현재값 레이블 (숫자로 표시, 색상은 Signal 대비 위/아래로 구분)
-  const lastObv=obvArr[obvArr.length-1];
-  const lastObvSig=obvSignalMA(obvArr,candles.length-1,10);
-  const obvEl=document.getElementById('vObv');
-  obvEl.textContent=fmtObv(lastObv);
-  if(lastObvSig===null)obvEl.style.color='#555';
-  else if(lastObv>=lastObvSig)obvEl.style.color=pC;
-  else obvEl.style.color=lC;
-
-  // OBV 추세 차트 (상승=빨강, 하락=파랑)
-  OTC.data.labels=lbls;
-  const otData=vdata(i=>obvDir(obvArr,i));
-  OTC.data.datasets[0].data=otData;
-  OTC.data.datasets[0].backgroundColor=otData.map(v=>v===null?'rgba(0,0,0,0)':v===1?pC:v===-1?lC:'rgba(180,180,180,0.4)');
-  const lastObvDir=obvDir(obvArr,candles.length-1);
-  const obvTrendEl=document.getElementById('vObvTrend');
-  if(lastObvDir===1){obvTrendEl.textContent='상승';obvTrendEl.style.color=pC;}
-  else if(lastObvDir===-1){obvTrendEl.textContent='하락';obvTrendEl.style.color=lC;}
-  else{obvTrendEl.textContent='-';obvTrendEl.style.color='#555';}
-
-  // MA10과 캔들위치 차트 (종가>=MA10 빨강, 종가<MA10 파랑)
-  MPC.data.labels=lbls;
-  const mpData=vdata(i=>maPosDiff(i));
-  MPC.data.datasets[0].data=mpData;
-  MPC.data.datasets[0].backgroundColor=mpData.map(v=>v===null?'rgba(0,0,0,0)':v>0?'#F5A623':v<0?'#38B6E0':'#1a1a1a');
-  const lastMaPos=maPosDiff(candles.length-1);
-  const maPosEl=document.getElementById('vMaPos');
-  if(lastMaPos===null){maPosEl.textContent='-';maPosEl.style.color='#555';}
-  else if(lastMaPos>0){maPosEl.textContent='위';maPosEl.style.color='#F5A623';}
-  else if(lastMaPos<0){maPosEl.textContent='아래';maPosEl.style.color='#38B6E0';}
-  else{maPosEl.textContent='동일';maPosEl.style.color='#1a1a1a';}
-
-  // MA5와 캔들위치 차트 (MA10과 캔들위치와 동일한 색상)
-  MPC5.data.labels=lbls;
-  const mp5Data=vdata(i=>ma5PosDiff(i));
-  MPC5.data.datasets[0].data=mp5Data;
-  MPC5.data.datasets[0].backgroundColor=mp5Data.map(v=>v===null?'rgba(0,0,0,0)':v>0?'#F5A623':v<0?'#38B6E0':'#1a1a1a');
-  const lastMa5Pos=ma5PosDiff(candles.length-1);
-  const ma5PosEl=document.getElementById('vMa5Pos');
-  if(lastMa5Pos===null){ma5PosEl.textContent='-';ma5PosEl.style.color='#555';}
-  else if(lastMa5Pos>0){ma5PosEl.textContent='위';ma5PosEl.style.color='#F5A623';}
-  else if(lastMa5Pos<0){ma5PosEl.textContent='아래';ma5PosEl.style.color='#38B6E0';}
-  else{ma5PosEl.textContent='동일';ma5PosEl.style.color='#1a1a1a';}
-
-  // 볼린저밴드 이격 차트 (-10~+10)
-  BDC.data.labels=lbls;
-  BDC.data.datasets[0].data=vdata(i=>bbDeviation(i));
-  const lastBbDev=bbDeviation(candles.length-1);
-  const bbDevEl=document.getElementById('vBbDev');
-  if(lastBbDev===null){bbDevEl.textContent='-';bbDevEl.style.color='#555';}
-  else{
-    bbDevEl.textContent=lastBbDev.toFixed(1);
-    bbDevEl.style.color=lastBbDev>0?pC:lastBbDev<0?lC:'#1a1a1a';
-  }
-
-  // 거래대금 차트 (억원 단위)
-  VLC.data.labels=lbls;
-  VLC.data.datasets[0].data=vdata(i=>candles[i].volume*candles[i].close);
-
-  // 거래대금 현재값 레이블
-  const lastValue=candles[candles.length-1].volume*candles[candles.length-1].close;
-  document.getElementById('vValue').textContent=fmtEok(lastValue)+'억';
-
-  PC.update('none');MT.update('none');MC.update('none');OC.update('none');VLC.update('none');BDC.update('none');MPC.update('none');OTC.update('none');MPC5.update('none');BUYSIG.update('none');SELLSIG.update('none');MT30.update('none');BBTOUCH.update('none');
+  PC.update('none');OVB.update('none');BXC.update('none');
   updateUI();
 }
 
@@ -1181,7 +561,7 @@ function fp(v){return Math.round(v).toLocaleString('ko-KR');}
 function updateUI(){
   if(!candles.length)return;
   const last=candles[candles.length-1];
-  const lastChg=(last.close-last.open)/last.open*100;
+  const lastChg=last.open>0?(last.close-last.open)/last.open*100:0;
   const lcEl=document.getElementById('vLastChg');
   lcEl.textContent=(lastChg>0?'+':'')+lastChg.toFixed(2)+'%';
   lcEl.style.color=lastChg>0?pC:lastChg<0?lC:'#1a1a1a';
@@ -1212,8 +592,8 @@ function updateUI(){
   const lossRecs=tradeHistory.filter(t=>!t.win);
   let plRatioTxt='-';
   if(winRecs.length>0&&lossRecs.length>0){
-    const avgWin=winRecs.reduce((s,t)=>s+t.netPct,0)/winRecs.length;
-    const avgLoss=lossRecs.reduce((s,t)=>s+Math.abs(t.netPct),0)/lossRecs.length;
+    const avgWin=winRecs.reduce((a,t)=>a+t.netPct,0)/winRecs.length;
+    const avgLoss=lossRecs.reduce((a,t)=>a+Math.abs(t.netPct),0)/lossRecs.length;
     if(avgLoss>0)plRatioTxt=(avgWin/avgLoss).toFixed(2);
   }
   document.getElementById('vTradeCount').textContent=tot+'회 | '+plRatioTxt;
@@ -1231,11 +611,11 @@ function log(t){
 }
 function doBuy(buyFrac){
   // buyFrac: 1 => 잔여 전부 매수, 0.5 => 1/2분할매수 (1번째 클릭 50%, 2번째 클릭에 잔여 전부)
+  if(!candles.length)return;
   const last=candles[candles.length-1],idx=candles.length-1;
   if(pos&&pos.frac>=0.999){log('이미 전량 매수 상태입니다.');return;}
   if(pos&&buyFrac>=1){log('분할 매수 진행 중입니다. 1/2분할매수를 이용하세요.');return;}
 
-  // 포지션이 없으면 이번이 1번째 클릭(50%), 이미 있으면 2번째 클릭(잔여 전부)
   const addFrac=pos?(1-pos.frac):(buyFrac>=1?1:0.5);
   if(addFrac<=0)return;
 
@@ -1259,12 +639,12 @@ function doSell(sellFrac){
 
   let sellAmt;
   if(sellFrac>=1){
-    sellAmt=pos.frac; // 전체 매도: 잔여 전부 청산
+    sellAmt=pos.frac;
   }else if(!pos.halfSellUsed){
-    sellAmt=pos.frac*0.5; // 1번째 분할매도: 현재 보유량의 절반
+    sellAmt=pos.frac*0.5;
     pos.halfSellUsed=true;
   }else{
-    sellAmt=pos.frac; // 2번째 분할매도: 잔여 전부 청산
+    sellAmt=pos.frac;
   }
 
   tPnl+=net*sellAmt;
@@ -1276,7 +656,7 @@ function doSell(sellFrac){
   const remainPct=Math.round(pos.frac*100);
   const closing=pos.frac<=0.001;
   const holdTxt=closing?' | 보유 '+(elapsed-pos.d)+'분':'';
-  log((sellFrac<1?'1/2분할매도':'매도')+' @ '+fp(last.close)+holdTxt+' | '+net.toFixed(1)+'% (비중 '+Math.round(sellAmt*100)+'%'+(closing?'':', 잔여 '+remainPct+'%')+')');
+  log((sellFrac<1?'1/2분할매도':'매도')+' @ '+fp(last.close)+holdTxt+' | '+net.toFixed(2)+'% (비중 '+Math.round(sellAmt*100)+'%'+(closing?'':', 잔여 '+remainPct+'%')+')');
 
   if(closing){
     // 포지션 완전 청산 → 거래 1건으로 기록 (여러 번의 분할매도는 비중 가중평균으로 집계)
@@ -1303,7 +683,7 @@ function doSell(sellFrac){
 
 // ── tick ─────────────────────────────────────────────────────
 function tick(){
-  if(!window._realAllCandles || window._realNextIdx >= window._realAllCandles.length){
+  if(!window._realAllCandles||window._realNextIdx>=window._realAllCandles.length){
     stopT();
     log('데이터 종료 — 20:00 장 마감까지 재생 완료');
     return;
@@ -1315,12 +695,6 @@ function tick(){
     const cur=(candles[candles.length-1].close-pos.p)/pos.p*100;
     if(cur>pos.maxPct)pos.maxPct=cur;
     if(cur<pos.minPct)pos.minPct=cur;
-  }
-  if(candles.length>600){
-    candles.shift();
-    trades.forEach(t=>{t.i--;});
-    if(pos)pos.i--;
-    trades=trades.filter(t=>t.i>=0);
   }
   refresh();
 }
@@ -1348,97 +722,89 @@ function resetStats(){
 }
 
 // ── Worker API ───────────────────────────────────────────────
-async function loadStockList(){
+async function fetchJSON(url){
+  const r=await fetch(url,{cache:'no-store'});
+  return await r.json();
+}
+function normalize(arr){
+  return (arr||[]).map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume||0}))
+    .sort((a,b)=>a.time<b.time?-1:a.time>b.time?1:0);
+}
+async function loadDays(){
   try{
-    showOv('종목 목록 불러오는 중...');
-    const res=await fetch(WORKER+'/list1m');
-    const js=await res.json();
+    showOv('날짜 목록 불러오는 중...');
+    const js=await fetchJSON(WORKER+'/hynix/days');
     hideOv();
-    if(!js.stocks||!js.stocks.length){
-      alert('저장된 종목이 없습니다.\ntoss_1min_collector.py를 먼저 실행하세요.');
+    days=(js.days||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+    if(!days.length){
+      alert('저장된 SK하이닉스 데이터가 없습니다.\nhynix_sync.py를 먼저 실행하세요.');
       return;
     }
-    stockList=js.stocks;
-    shuffleBag=[]; // 새 목록 받으면 통 초기화
-    const sel=document.getElementById('stockSel');
+    const sel=document.getElementById('daySel');
     sel.innerHTML='';
-    stockList.forEach((s,idx)=>{
+    for(let i=days.length-1;i>=0;i--){ // 최신 날짜가 위로
+      const d=days[i];
       const o=document.createElement('option');
-      o.value=idx;  // code만으로는 최근 2일치에서 중복될 수 있어 인덱스로 구분
-      o.textContent=s.name+' ('+s.code+') — '+s.date+' ('+s.count+'분)';
+      o.value=d.date;
+      o.textContent=d.date+' ('+d.count+'분)'+(d.count<FULL_DAY?' ⚠누락':'');
       sel.appendChild(o);
-    });
-    // 최근 2일치 중 랜덤 종목 자동 로드 (중복 방지 통에서 하나 뽑기)
-    const rndIdx=drawFromBag();
-    sel.value=rndIdx;
-    loadReal(stockList[rndIdx].code, stockList[rndIdx].date);
+    }
+    shuffleBag=[];
+    const date=days[drawFromBag()].date;
+    sel.value=date;
+    loadDay(date);
   }catch(e){
     hideOv();
-    alert('종목 목록 로드 실패: '+e.message);
+    alert('날짜 목록 로드 실패: '+e.message);
   }
 }
-async function loadReal(code, date){
-  showOv(code+' ('+date+') 불러오는 중...');
+async function loadDay(date){
+  showOv(date+' 불러오는 중...');
   stopT();
   try{
-    const res=await fetch(WORKER+'/ohlcv1m?code='+code+'&date='+date);
-    const js=await res.json();
+    const di=days.findIndex(d=>d.date===date);
+    const prevDate=di>0?days[di-1].date:null;
+    const [js,pjs]=await Promise.all([
+      fetchJSON(WORKER+'/hynix/day?date='+date),
+      prevDate?fetchJSON(WORKER+'/hynix/day?date='+prevDate).catch(()=>null):Promise.resolve(null)
+    ]);
     if(js.error)throw new Error(js.error);
-    if(!js.candles||js.candles.length<10)throw new Error('데이터 부족');
+    const todayCandles=normalize(js.candles);
+    if(todayCandles.length<10)throw new Error('데이터 부족');
 
-    const todayCandles=js.candles.map(d=>({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume}));
-    const total=todayCandles.length;
-
-    // 전일 마지막 분봉 시드 데이터 조회 — 최근 TAIL_VISIBLE분은 실제 캔들로 화면에 보여주고,
-    // 그 이전 분(최대 TAIL_LEN분까지)은 화면엔 안 보이되 MA10/MA40/볼린저밴드 계산에만 사용
+    // 전일 마지막 SEED_LEN분: 최근 TAIL_VISIBLE분은 실제 캔들로 보여주고, 나머지는 지표 계산에만 사용
     let visiblePrefix=[];
     histCandles=[];
-    let prevDayIncomplete=false;
-    try{
-      const tres=await fetch(WORKER+'/tail1m?code='+code+'&date='+date);
-      const tjs=await tres.json();
-      if(tjs.tail&&tjs.tail.length){
-        const tail=tjs.tail; // 오래된→최신 순
-        const visCount=Math.min(TAIL_VISIBLE,tail.length);
-        visiblePrefix=tail.slice(tail.length-visCount);
-        histCandles=tail.slice(0,tail.length-visCount);
-        // 전일(시드 출처일) 마지막 봉이 20:00 마감까지 못 미쳤으면 전일 데이터도 불완전한 것
-        const lastTailTime=tail[tail.length-1].time;
-        if(lastTailTime&&lastTailTime.slice(11,16)<'20:00')prevDayIncomplete=true;
-      }
-    }catch(e){/* 시드 데이터 없어도 무방, 기존 방식대로 동작 */}
+    let prevIncomplete=true; // 전일 데이터가 없거나 20:00 마감까지 안 채워졌으면 누락 처리
+    if(pjs&&!pjs.error&&pjs.candles&&pjs.candles.length){
+      const tail=normalize(pjs.candles).slice(-SEED_LEN);
+      const vis=Math.min(TAIL_VISIBLE,tail.length);
+      visiblePrefix=tail.slice(tail.length-vis);
+      histCandles=tail.slice(0,tail.length-vis);
+      prevIncomplete=pjs.candles.length<FULL_DAY;
+    }
 
-    const allCandles=visiblePrefix.map(d=>{
-      // 예전 형식(종가만 저장된 데이터)이면 시가=고가=저가=종가로 대체해 단순화된 캔들로 표시
-      const hasOHLC=d.open!==undefined&&d.high!==undefined&&d.low!==undefined;
-      return hasOHLC
-        ? {time:d.time,open:d.open,high:d.high,low:d.low,close:d.close,volume:d.volume||0}
-        : {time:d.time,open:d.close,high:d.close,low:d.close,close:d.close,volume:d.volume||0};
-    }).concat(todayCandles);
-    const todayStartIdx=visiblePrefix.length; // 오늘 첫 봉의 인덱스 — 날짜분기선 위치
-
-    // 항상 오늘 첫 봉부터 시작 — 전일 프리픽스는 전부 미리 보여주고, 오늘 첫 봉까지만 표시
-    // 이후는 시작 버튼으로 1분씩 재생
-    const startIdx=todayStartIdx+1;
+    const allCandles=visiblePrefix.concat(todayCandles);
+    const todayStartIdx=visiblePrefix.length;
+    const startIdx=todayStartIdx+1; // 당일 첫 봉까지만 먼저 표시, 이후는 ▶로 1분씩 재생
     candles=allCandles.slice(0,startIdx);
-    // 전체 데이터 저장 (시작 이후 봉 추가용)
     window._realAllCandles=allCandles;
     window._realNextIdx=startIdx;
     window._todayStartIdx=todayStartIdx;
 
-    // 데이터누락 배지: 오늘 자체 누락(missing_minutes) 또는 전일(시드 출처) 20:00 마감 미도달 중 하나라도 있으면 표시
-    const todayIncomplete=!!(js.missing_minutes&&js.missing_minutes>0);
-    window._dataIncomplete=todayIncomplete||prevDayIncomplete;
+    const todayIncomplete=todayCandles.length<FULL_DAY;
+    window._dataIncomplete=todayIncomplete||prevIncomplete;
 
-    curStock={name:js.name||code,code:js.code,date:js.date||date,count:js.count,totalCandles:total};
-    elapsed=0;  // 연습 시작 시점부터 0으로 카운팅
+    curDate=date;
+    elapsed=0;
     resetStats();refresh();
 
-    const firstT=todayCandles[0].time?todayCandles[0].time.slice(11,16):'';
-    const lastT=todayCandles[todayCandles.length-1].time?todayCandles[todayCandles.length-1].time.slice(11,16):'';
-    const dateCompact=(curStock.date||date).replace(/-/g,'');
-    const missingTxt=(js.missing_minutes&&js.missing_minutes>0)?' (부분누락)':'';
-    setBanner('📈 '+curStock.name+' | '+dateCompact+' | '+firstT+'~'+lastT+missingTxt,'breal');
+    const firstT=todayCandles[0].time.slice(11,16);
+    const lastT=todayCandles[todayCandles.length-1].time.slice(11,16);
+    let note='';
+    if(todayIncomplete)note+=' (당일 부분누락)';
+    if(prevIncomplete)note+=' (전일 '+(prevDate?'부분누락':'데이터 없음')+')';
+    setBanner('📈 SK하이닉스 | '+date.replace(/-/g,'')+' | '+firstT+'~'+lastT+note,'breal');
     hideOv();
   }catch(e){
     hideOv();alert('불러오기 실패: '+e.message);
@@ -1469,8 +835,9 @@ async function requestAIAnalysis(record){
   const avgH=tot>0?(holdSum/tot).toFixed(1):'0';
   const missedMore=record.maxPct>record.netPct+2;
   const lostMore=record.minPct<record.netPct-1;
+  const yn=v=>v?'있음':'없음';
 
-  const prompt=`당신은 주식 단기 매매 트레이닝 코치입니다. 학습자의 매매를 아래 데이터를 토대로 냉철하게 분석해주세요. 마크다운 없이 일반 텍스트로, 한국어로 답변하세요.
+  const prompt=`당신은 주식 단기 매매 트레이닝 코치입니다. 학습자의 SK하이닉스 1분봉 매매를 아래 데이터를 토대로 냉철하게 분석해주세요. 마크다운 없이 일반 텍스트로, 한국어로 답변하세요.
 
 ===== 거래 #${record.no} 기본 정보 =====
 매수가: ${fp(record.buyPrice)}원  |  매도가: ${fp(record.sellPrice)}원
@@ -1479,24 +846,25 @@ async function requestAIAnalysis(record){
 보유 중 최고 수익률: +${record.maxPct.toFixed(2)}%  |  보유 중 최저 수익률: ${record.minPct.toFixed(2)}%
 
 ===== 매수 시점 =====
-MA 배열: ${maStatus(bs)}
-MA10: ${bs&&bs.ma20?Math.round(bs.ma20):'N/A'}  MA40: ${bs&&bs.ma80?Math.round(bs.ma80):'N/A'}
-MA10 이격: ${bs&&bs.gapMa20?bs.gapMa20:'N/A'}%  |  MA40 이격: ${bs&&bs.gapMa80?bs.gapMa80:'N/A'}%
-MA 수렴 중: ${bs&&bs.maConverging?'예':'아니오'}
+이평 상태: ${maStatus(bs)}
+MA5: ${bs&&bs.ma5?Math.round(bs.ma5):'N/A'}  MA30: ${bs&&bs.ma30?Math.round(bs.ma30):'N/A'}
+MA5 이격: ${bs&&bs.gapMa5?bs.gapMa5:'N/A'}%  |  MA30 이격: ${bs&&bs.gapMa30?bs.gapMa30:'N/A'}%
+겹침매수신호: ${yn(bs&&bs.overlapBuy)}  |  박스 구간: ${bs&&bs.box?'예':'아니오'}
+MA5 저점반전: ${yn(bs&&bs.ma5Rev)}  |  MA30 추세반전: ${yn(bs&&bs.ma30Rev)}
 봉 모양: ${bs&&bs.candleShape?bs.candleShape:'N/A'}  |  ${bs&&bs.isUp?'양봉':'음봉'}
 연속 양봉: ${bs?bs.upStreak:0}개  |  연속 음봉: ${bs?bs.downStreak:0}개
-최고거래량90%,20억 신호: ${bs&&bs.volSignal?'있음':'없음'}  |  당일 최고거래량 대비: ${bs&&bs.volRatio?bs.volRatio:'N/A'}%
+직전 20봉 평균 거래량 대비: ${bs&&bs.volRatio?bs.volRatio:'N/A'}%
 전고점 돌파: ${bs&&bs.breakout?'돌파':'미돌파'}
 
 ===== 매도 시점 =====
-MA 배열: ${maStatus(ss)}
+이평 상태: ${maStatus(ss)}
 봉 모양: ${ss&&ss.candleShape?ss.candleShape:'N/A'}  |  ${ss&&ss.isUp?'양봉':'음봉'}
-최고거래량90%,20억 신호: ${ss&&ss.volSignal?'있음':'없음'}
+박스 구간: ${ss&&ss.box?'예':'아니오'}
 최고점 대비 일찍 매도: ${missedMore?'예(최고 +'+record.maxPct.toFixed(1)+'%에서 +'+record.netPct.toFixed(1)+'%에 매도)':'아니오'}
 최저점보다 늦게 매도: ${lostMore?'예':'아니오'}
 
 ===== 누적 통계 =====
-총 거래: ${tot}회  |  승률: ${wr}%  |  평균 보유기간: ${avgH}일
+총 거래: ${tot}회  |  승률: ${wr}%  |  평균 보유기간: ${avgH}분
 누적 손익: ${tPnl.toFixed(2)}%
 
 아래 5가지를 번호와 제목 붙여서 서술하세요.
@@ -1532,14 +900,14 @@ async function requestPatternAnalysis(){
   const maxWin=Math.max(...tradeHistory.map(t=>t.netPct));
   const maxLoss=Math.min(...tradeHistory.map(t=>t.netPct));
   const pf=losses>0?Math.abs(avgWin/avgLoss):99;
-  const buyUptrend=tradeHistory.filter(t=>t.buySnap&&t.buySnap.ma5>t.buySnap.ma20&&t.buySnap.ma20>t.buySnap.ma80).length;
-  const buyVol=tradeHistory.filter(t=>t.buySnap&&t.buySnap.volSignal).length;
+  const buyOverlap=tradeHistory.filter(t=>t.buySnap&&t.buySnap.overlapBuy).length;
+  const buyBox=tradeHistory.filter(t=>t.buySnap&&t.buySnap.box).length;
   const avgMaxPct=tradeHistory.reduce((s,t)=>s+t.maxPct,0)/tot;
   const earlyExits=tradeHistory.filter(t=>t.maxPct-t.netPct>3).length;
   const avgHW=winTrades.length>0?winTrades.reduce((s,t)=>s+t.holdDays,0)/winTrades.length:0;
   const avgHL=lossTrades.length>0?lossTrades.reduce((s,t)=>s+t.holdDays,0)/lossTrades.length:0;
 
-  const prompt=`당신은 주식 단기 매매 트레이닝 코치입니다. 학습자의 ${tot}회 매매 전체 패턴을 분석해주세요. 마크다운 없이 일반 텍스트로, 한국어로 답변하세요.
+  const prompt=`당신은 주식 단기 매매 트레이닝 코치입니다. 학습자의 SK하이닉스 1분봉 ${tot}회 매매 전체 패턴을 분석해주세요. 마크다운 없이 일반 텍스트로, 한국어로 답변하세요.
 
 ===== 전체 성과 =====
 승률: ${wr}% (${wins}승 ${losses}패)
@@ -1550,8 +918,8 @@ async function requestPatternAnalysis(){
 누적 손익: ${tPnl.toFixed(2)}%
 
 ===== 매수 습관 =====
-정배열 매수: ${buyUptrend}/${tot}회
-거래량 급증 시 매수: ${buyVol}/${tot}회
+겹침매수신호가 떠 있을 때 매수: ${buyOverlap}/${tot}회
+박스 구간에서 매수: ${buyBox}/${tot}회
 
 ===== 매도 습관 =====
 평균 최고 수익률: +${avgMaxPct.toFixed(2)}%
@@ -1575,11 +943,11 @@ ${tradeHistory.slice(-5).map(t=>'#'+t.no+': '+(t.win?'수익':'손실')+' '+t.ne
   }
 }
 
-function loadRandomStock(){
-  if(!stockList.length){loadStockList();return;}
-  const idx=drawFromBag();
-  document.getElementById('stockSel').value=idx;
-  loadReal(stockList[idx].code, stockList[idx].date);
+function loadRandomDay(){
+  if(!days.length){loadDays();return;}
+  const date=days[drawFromBag()].date;
+  document.getElementById('daySel').value=date;
+  loadDay(date);
 }
 function setBanner(t,c){
   const el=document.getElementById('banner');
@@ -1598,58 +966,19 @@ document.getElementById('btnAiRequest').onclick=()=>{
     return;
   }
   requestAIAnalysis(lastTradeRecord);
-  const tot=wins+losses;
-  if(tot>=3)requestPatternAnalysis();
-};
-document.getElementById('bbToggle').onchange=(e)=>{
-  showBB=e.target.checked;
-  localStorage.setItem('bb_enabled',showBB?'1':'0');
-  PC.data.datasets[4].hidden=!showBB;
-  PC.data.datasets[5].hidden=!showBB;
-  refresh();
-};
-document.getElementById('ichiToggle').onchange=(e)=>{
-  showIchi=e.target.checked;
-  localStorage.setItem('ichi_enabled',showIchi?'1':'0');
-  PC.data.datasets[6].hidden=!showIchi;
-  PC.data.datasets[7].hidden=!showIchi;
-  refresh();
-};
-document.getElementById('ma5Toggle').onchange=(e)=>{
-  showMA5=e.target.checked;
-  localStorage.setItem('ma5_enabled',showMA5?'1':'0');
-  PC.data.datasets[0].hidden=!showMA5;
-  refresh();
-};
-document.getElementById('ma10Toggle').onchange=(e)=>{
-  showMA10=e.target.checked;
-  localStorage.setItem('ma10_enabled',showMA10?'1':'0');
-  PC.data.datasets[1].hidden=!showMA10;
-  refresh();
-};
-document.getElementById('ma30Toggle').onchange=(e)=>{
-  showMA30=e.target.checked;
-  localStorage.setItem('ma30_enabled',showMA30?'1':'0');
-  PC.data.datasets[2].hidden=!showMA30;
-  refresh();
-};
-document.getElementById('ma40Toggle').onchange=(e)=>{
-  showMA40=e.target.checked;
-  localStorage.setItem('ma40_enabled',showMA40?'1':'0');
-  PC.data.datasets[3].hidden=!showMA40;
-  refresh();
+  if(wins+losses>=3)requestPatternAnalysis();
 };
 document.getElementById('btnLoad').onclick=()=>{
-  const v=document.getElementById('stockSel').value;
-  if(v!=='' && stockList[+v])loadReal(stockList[+v].code, stockList[+v].date);
+  const v=document.getElementById('daySel').value;
+  if(v&&days.some(d=>d.date===v))loadDay(v);
 };
-document.getElementById('btnRandStock').onclick=loadRandomStock;
+document.getElementById('btnRandDay').onclick=loadRandomDay;
 document.getElementById('btnToggleT').onclick=toggleStart;
 document.getElementById('btnToggleTM').onclick=toggleStart;
 document.getElementById('btnReset').onclick=()=>{
   stopT();
   resetStats();
-  if(curStock)loadReal(curStock.code, curStock.date);else refresh();
+  if(curDate)loadDay(curDate);else refresh();
 };
 document.getElementById('btnBuy').onclick=()=>doBuy(1);
 document.getElementById('btnBuyHalf').onclick=()=>doBuy(.5);
@@ -1663,7 +992,7 @@ document.getElementById('btnSellHalfM').onclick=()=>doSell(.5);
 [['s05',.5],['s1',1],['s2',2],['s3',3],['s4',4]].forEach(([id,v])=>{
   document.getElementById(id).onclick=()=>{
     intSec=v;
-    localStorage.setItem('speed_sec',String(v));
+    try{localStorage.setItem('hynix_speed_sec',String(v));}catch(e){}
     ['s05','s1','s2','s3','s4'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
     if(timer){stopT();startT();}  // 재생 중이면 즉시 새 속도로 다시 시작
   };
@@ -1671,82 +1000,32 @@ document.getElementById('btnSellHalfM').onclick=()=>doSell(.5);
 [['c1',10000000],['c5',50000000],['c10',100000000]].forEach(([id,v])=>{
   document.getElementById(id).onclick=()=>{
     capital=v;
-    localStorage.setItem('capital_won',String(v));
+    try{localStorage.setItem('hynix_capital_won',String(v));}catch(e){}
     ['c1','c5','c10'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
     updateUI();
   };
 });
 
-// 저장된 볼린저밴드 설정 복원 (새로고침/재시작해도 유지)
+// 저장된 속도/원금 설정 복원 (새로고침해도 유지)
 try{
-  const savedBB=localStorage.getItem('bb_enabled');
-  if(savedBB==='1'){
-    showBB=true;
-    document.getElementById('bbToggle').checked=true;
-    PC.data.datasets[4].hidden=false;
-    PC.data.datasets[5].hidden=false;
-  }
-}catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값(꺼짐) 유지 */}
-
-// 저장된 일목균형표 설정 복원
-try{
-  const savedIchi=localStorage.getItem('ichi_enabled');
-  if(savedIchi==='1'){
-    showIchi=true;
-    document.getElementById('ichiToggle').checked=true;
-    PC.data.datasets[6].hidden=false;
-    PC.data.datasets[7].hidden=false;
-  }
-}catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값(꺼짐) 유지 */}
-
-// 저장된 MA5/MA10 표시 설정 복원
-try{
-  const savedMA5=localStorage.getItem('ma5_enabled');
-  if(savedMA5==='1'){
-    showMA5=true;
-    document.getElementById('ma5Toggle').checked=true;
-    PC.data.datasets[0].hidden=false;
-  }
-  const savedMA10=localStorage.getItem('ma10_enabled');
-  if(savedMA10==='0'){
-    showMA10=false;
-    document.getElementById('ma10Toggle').checked=false;
-    PC.data.datasets[1].hidden=true;
-  }
-  const savedMA30=localStorage.getItem('ma30_enabled');
-  if(savedMA30==='0'){
-    showMA30=false;
-    document.getElementById('ma30Toggle').checked=false;
-    PC.data.datasets[2].hidden=true;
-  }
-  const savedMA40=localStorage.getItem('ma40_enabled');
-  if(savedMA40==='0'){
-    showMA40=false;
-    document.getElementById('ma40Toggle').checked=false;
-    PC.data.datasets[3].hidden=true;
-  }
-}catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값 유지 */}
-
-// 저장된 속도/원금 설정 복원
-try{
-  const savedSpeed=localStorage.getItem('speed_sec');
+  const savedSpeed=localStorage.getItem('hynix_speed_sec');
   if(savedSpeed){
     intSec=parseFloat(savedSpeed);
     const idMap={'0.5':'s05','1':'s1','2':'s2','3':'s3','4':'s4'};
     const id=idMap[savedSpeed];
     if(id)['s05','s1','s2','s3','s4'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
   }
-  const savedCapital=localStorage.getItem('capital_won');
+  const savedCapital=localStorage.getItem('hynix_capital_won');
   if(savedCapital){
     capital=parseInt(savedCapital,10);
     const idMap={'10000000':'c1','50000000':'c5','100000000':'c10'};
     const id=idMap[savedCapital];
     if(id)['c1','c5','c10'].forEach(k=>document.getElementById(k).className=k===id?'b':'');
   }
-}catch(e){/* localStorage 사용 불가 환경이면 그냥 기본값 유지 */}
+}catch(e){/* localStorage 사용 불가 환경이면 기본값 유지 */}
 
 // ── 시작 ─────────────────────────────────────────────────────
-loadStockList();
+loadDays();
 
 })();
 </script>
